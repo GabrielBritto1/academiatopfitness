@@ -4,16 +4,12 @@
 @section('title', 'Usuários')
 
 @section('content_header')
-<h1>Usuários</h1>
+<h1><i class="fas fa-fw fa-users"></i> Usuários</h1>
 @stop
 
-@section('content_header')
-<h1>TESTE</h1>
-@endsection
 @section('content')
 <div class="col-12">
     <div class="card">
-        <!-- /.card-header -->
         <div class="card-header">
             <div class="card-tools">
                 <div class="btn-group" role="group" aria-label="...">
@@ -29,35 +25,42 @@
                 </div>
             </div>
         </div>
+        <!-- /.card-header -->
         <div class="card-body table-responsive p-0">
-            <table class="table table-hover text-nowrap">
+            <table class="table table-hover text-nowrap" id="user-table">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nome</th>
                         <th>Email</th>
-                        <th>Ações</th>
+                        <th>Perfil</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($users as $user)
                     <tr>
-                        <td>{{$user->id}}</td>
-                        <td>{{$user->name}}</td>
-                        <td>{{$user->email}}</td>
-                        <td>
-                            <a href="{{ route('user.edit',$user->id) }}"><i class="fas fa fa-edit"></i></a>
-                            <a href="{{ route('user.show',$user->id) }}"><i class="fas fa fa-eye"></i></a>
-                            <form action="{{ route('user.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
-                                @csrf
-                                @method('DELETE')
-                                <button style="border:none; background: none;" type="submit">
-                                    <i class="fas fa fa-trash"></i>
-                                </button>
-                            </form>
+                        <td class="align-middle">{{$user->id}}</td>
+                        <td class="align-middle">{{$user->name}}</td>
+                        <td class="align-middle">{{$user->email}}</td>
+                        @foreach ($user->perfil as $perfil)
+                        <td class="align-middle">{{$perfil->formatted_name}}</td>
+                        @endforeach
+                        <td class="align-middle overflow-visible-btn " style="text-align: right">
+                            <div class="btn-group">
+                                <a class="btn btn-warning" href="{{ route('user.edit',$user->id) }}"><i class="fas fa fa-edit text-white"></i></a>
+                                <a class="btn btn-success" href="{{ route('user.show',$user->id) }}"><i class="fas fa fa-eye"></i></a>
+                                <form action="{{ route('user.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger" type="submit">
+                                        <i class="fas fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                         @empty
-                        <td>Não tem nada</td>
+                        <td>Não há usuários no banco de dados</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -111,39 +114,6 @@
     @stop
 
     @section('js')
-    <script>
-        console.log("Hi, I'm using the Laravel-AdminLTE package!");
-
-        function confirmarExclusao(event, formulario) {
-            event.preventDefault();
-
-            Swal.fire({
-                title: 'Tem certeza?',
-                text: "Esta ação não poderá ser revertida!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sim, excluir!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Processando...',
-                        text: 'Aguarde enquanto o usuário é excluído.',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        allowEnterKey: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    formulario.submit();
-                }
-            });
-        }
-    </script>
     @if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
