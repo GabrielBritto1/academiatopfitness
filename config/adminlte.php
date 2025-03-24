@@ -332,6 +332,11 @@ return [
             'url' => 'users',
             'icon' => 'fas fa-fw fa-users',
         ],
+        [
+            'text' => 'Modalidades',
+            'url' => 'modalidades',
+            'icon' => 'fas fa-fw fa-tags',
+        ],
         // ['header' => 'account_settings'],
         // [
         //     'text' => 'profile',

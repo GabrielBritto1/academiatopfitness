@@ -37,7 +37,7 @@
                         <th></th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tabela-usuarios">
                     @forelse ($users as $user)
                     <tr>
                         <td class="align-middle">{{$user->id}}</td>
@@ -50,14 +50,14 @@
                             <div class="btn-group">
                                 <a class="btn btn-warning" href="{{ route('user.edit',$user->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                                 <a class="btn btn-success" href="{{ route('user.show',$user->id) }}"><i class="fas fa fa-eye"></i></a>
-                                <form action="{{ route('user.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-danger" type="submit">
-                                        <i class="fas fa fa-trash"></i>
-                                    </button>
-                                </form>
                             </div>
+                            <form action="{{ route('user.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-danger" type="submit">
+                                    <i class="fas fa fa-trash"></i>
+                                </button>
+                            </form>
                         </td>
                         @empty
                         <td>Não há usuários no banco de dados</td>
@@ -114,6 +114,8 @@
     @stop
 
     @section('js')
+    <script src="/js/User/index.js"></script>
+
     @if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
