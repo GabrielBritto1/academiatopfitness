@@ -14,7 +14,7 @@ function confirmarExclusao(event, formulario) {
         if (result.isConfirmed) {
             Swal.fire({
                 title: 'Processando...',
-                text: 'Aguarde enquanto o usuário é excluído.',
+                text: 'Aguarde enquanto a modalidade é excluída.',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 allowEnterKey: false,

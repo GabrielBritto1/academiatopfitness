@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
@@ -90,22 +89,6 @@ class UserController extends Controller
         $userDestroy = User::findOrFail($id);
         $userDestroy->delete();
 
-        return redirect()->route('user.index')->with('success', 'Usuário excluso com sucesso');
-    }
-
-    public function getData()
-    {
-        $users = User::select(['id', 'nome', 'email', 'created_at']);
-
-        return DataTables::of($users)
-            ->addColumn('action', function ($user) {
-                return '
-                    <a href="' . route('user.show', $user->id) . '" class="btn btn-primary btn-sm">Ver</a>
-                    <a href="' . route('user.edit', $user->id) . '" class="btn btn-warning btn-sm">Editar</a>
-                    <button class="btn btn-danger btn-sm delete-btn" data-id="' . $user->id . '">Excluir</button>
-                ';
-            })
-            ->rawColumns(['action'])
-            ->make(true);
+        return redirect()->route('user.index')->with('success', 'Usuário deletado com sucesso');
     }
 }
