@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Perfil;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,8 +15,9 @@ class UserController extends Controller
      */
     public function index()
     {
+        $perfils = Perfil::all();
         $users = User::with('perfil')->get();
-        return view('user.index', compact('users'));
+        return view('user.index', compact('users', 'perfils'));
     }
 
     /**
@@ -35,13 +37,15 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'perfil' => 'required|exists:perfils,id',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password'])
+            'password' => Hash::make($validated['password']),
         ]);
+        $user->perfil()->attach($validated['perfil']);
 
         return redirect()->route('user.index')->with('success', 'Usuário criado com sucesso!');
     }
@@ -60,8 +64,9 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
+        $perfils = Perfil::all();
         $userEdit = User::findOrFail($id);
-        return view('user.edit', compact('userEdit'));
+        return view('user.edit', compact('userEdit', 'perfils'));
     }
 
     /**
@@ -73,12 +78,17 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => 'required',
-            'email' => 'required|email'
+            'email' => 'required|email',
+            'perfil' => 'required|exists:perfils,id',
         ]);
 
-        $userUpdate->update($validated);
+        $userUpdate->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+        $userUpdate->perfil()->attach($validated['perfil']);
 
-        return redirect()->route('users')->with('success', 'Usuário atualizado com sucesso!');
+        return redirect()->route('user.index')->with('success', 'Usuário atualizado com sucesso!');
     }
 
     /**

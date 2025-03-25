@@ -13,12 +13,6 @@
         <div class="card-header">
             <div class="card-tools">
                 <div class="btn-group" role="group" aria-label="...">
-                    <a href="#" class="btn btn-sm btn-primary" id="abrirModalFiltros" title="Filtrar resultados">
-                        <i class="fas fa-fw fa-search"></i>
-                    </a>
-                    <a href="#" class="btn btn-sm btn-secondary" title="Gerar PDF" target="_blank">
-                        <i class="fas fa-fw fa-file-pdf"></i>
-                    </a>
                     <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo item">
                         <i class="fas fa-fw fa-plus"></i>
                     </a>
@@ -114,7 +108,7 @@
                         <label for="nivel_dificuldade">Nível de Dificuldade</label>
                         <input type="nivel_dificuldade" name="nivel_dificuldade" class="form-control" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Criar Modalidade</button>
+                    <button type="submit" class="btn btn-warning text-bold">Criar Modalidade</button>
                 </form>
             </div>
             <!-- /.modal-content -->
