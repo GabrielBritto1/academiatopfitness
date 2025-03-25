@@ -13,12 +13,6 @@
         <div class="card-header">
             <div class="card-tools">
                 <div class="btn-group" role="group" aria-label="...">
-                    <a href="#" class="btn btn-sm btn-primary" id="abrirModalFiltros" title="Filtrar resultados">
-                        <i class="fas fa-fw fa-search"></i>
-                    </a>
-                    <a href="#" class="btn btn-sm btn-secondary" title="Gerar PDF" target="_blank">
-                        <i class="fas fa-fw fa-file-pdf"></i>
-                    </a>
                     <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo item">
                         <i class="fas fa-fw fa-plus"></i>
                     </a>
@@ -75,7 +69,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">Default Modal</h4>
+                <h4 class="modal-title">Inserir Usuário</h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
@@ -92,6 +86,15 @@
                         <input type="email" class="form-control" id="email" name="email" required>
                     </div>
                     <div class="form-group">
+                        <label for="perfil">Perfil</label>
+                        <select name="perfil" class="form-control">
+                            <option value="" class="disabled">Selecione um perfil...</option>
+                            @foreach ($perfils as $perfil)
+                            <option value="{{ $perfil->id }}">{{ $perfil->formatted_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="password">Senha</label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
@@ -99,7 +102,7 @@
                         <label for="password_confirmation">Confirme a Senha</label>
                         <input type="password" name="password_confirmation" class="form-control" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Criar Usuário</button>
+                    <button type="submit" class="btn btn-warning text-bold">Criar Usuário</button>
                 </form>
             </div>
             <!-- /.modal-content -->
