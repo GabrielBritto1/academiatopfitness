@@ -13,9 +13,11 @@
         <div class="card-header">
             <div class="card-tools">
                 <div class="btn-group" role="group" aria-label="...">
+                    @can('admin')
                     <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo item">
                         <i class="fas fa-fw fa-plus"></i>
                     </a>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -27,7 +29,7 @@
                         <th>ID</th>
                         <th>Nome</th>
                         <th>Email</th>
-                        <th>Perfil</th>
+                        <th>Roles</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -37,14 +39,19 @@
                         <td class="align-middle">{{$user->id}}</td>
                         <td class="align-middle">{{$user->name}}</td>
                         <td class="align-middle">{{$user->email}}</td>
-                        @foreach ($user->perfil as $perfil)
-                        <td class="align-middle">{{$perfil->formatted_name}}</td>
+                        @foreach ($user->roles as $role)
+                        <td class="align-middle">
+                            {{$role->formatted_name}}
+                        </td>
                         @endforeach
                         <td class="align-middle overflow-visible-btn " style="text-align: right">
                             <div class="btn-group">
+                                @can('admin')
                                 <a class="btn btn-warning" href="{{ route('user.edit',$user->id) }}"><i class="fas fa fa-edit text-white"></i></a>
+                                @endcan
                                 <a class="btn btn-success" href="{{ route('user.show',$user->id) }}"><i class="fas fa fa-eye"></i></a>
                             </div>
+                            @can('admin')
                             <form action="{{ route('user.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
                                 @csrf
                                 @method('DELETE')
@@ -52,6 +59,7 @@
                                     <i class="fas fa fa-trash"></i>
                                 </button>
                             </form>
+                            @endcan
                         </td>
                         @empty
                         <td>Não há usuários no banco de dados</td>
@@ -86,11 +94,11 @@
                         <input type="email" class="form-control" id="email" name="email" required>
                     </div>
                     <div class="form-group">
-                        <label for="perfil">Perfil</label>
-                        <select name="perfil" class="form-control">
-                            <option value="" class="disabled">Selecione um perfil...</option>
-                            @foreach ($perfils as $perfil)
-                            <option value="{{ $perfil->id }}">{{ $perfil->formatted_name }}</option>
+                        <label for="roles">Roles</label>
+                        <select name="roles" class="form-control">
+                            <option value="">Selecione uma role</option>
+                            @foreach ($roles as $role)
+                            <option value="{{$role->id}}">{{$role->formatted_name}}</option>
                             @endforeach
                         </select>
                     </div>

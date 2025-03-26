@@ -20,16 +20,6 @@
             <label for="email">E-mail</label>
             <input type="email" name="email" class="form-control" value="{{ $userEdit->email }}" required>
         </div>
-
-        <div class="form-group">
-            <label for="perfil">Perfil</label>
-            <select name="perfil" class="form-control">
-                <option value="" class="disabled">Selecione um perfil...</option>
-                @foreach ($perfils as $perfil)
-                <option value="{{ $perfil->id }}" {{ $userEdit->perfil_id == $perfil->id ? 'selected' : '' }}>{{ $perfil->formatted_name }}</option>
-                @endforeach
-            </select>
-        </div>
     </div>
 
     <div class="card-footer">

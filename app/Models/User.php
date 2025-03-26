@@ -45,8 +45,13 @@ class User extends Authenticatable
         ];
     }
 
-    public function perfil()
+    public function roles()
     {
-        return $this->belongsToMany(Perfil::class);
+        return $this->belongsToMany(Role::class);
+    }
+
+    public function abilities()
+    {
+        return $this->roles->map->abilities->flatten()->pluck('name');
     }
 }
