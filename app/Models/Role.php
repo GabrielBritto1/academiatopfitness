@@ -4,22 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Perfil extends Model
+class Role extends Model
 {
-    protected $fillable = [
-        'name'
-    ];
-
-    public function users()
+    public function abilities()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(Ability::class);
     }
 
     public function getFormattedNameAttribute()
     {
         return match ($this->name) {
-            'super-admin' => 'Super Administrador',
             'admin' => 'Administrador',
+            'beta_tester' => 'Beta Tester',
             default => ucfirst($this->name),
         };
     }

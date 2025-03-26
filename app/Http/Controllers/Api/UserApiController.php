@@ -30,7 +30,21 @@ class UserApiController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'roles' => 'required|exists:roles,id',
+        ]);
+
+        $user = User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => bcrypt($request->input('password')),
+        ]);
+        $user->roles()->attach($request->input('roles'));
+
+        return response()->json($user);
     }
 
     /**
@@ -38,7 +52,8 @@ class UserApiController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = User::with('roles', 'roles.abilities')->findOrFail($id);
+        return response()->json($user);
     }
 
     /**

@@ -17,13 +17,14 @@ Route::middleware(['auth'])->group(function () {
     // ROTA DE USUÁRIOS
     // Route::resource('/users', UserController::class);
     Route::get('/users', [UserController::class, 'index'])->name('user.index');
-    Route::get('/user/list', [UserController::class, 'list'])->name('user.list');
-    Route::get('/user/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
     Route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
-    Route::put('/user/{id}', [UserController::class, 'update'])->name('user.update');
-    Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
-    Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
-    Route::post('/users', [UserController::class, 'store'])->name('user.store');
+    Route::middleware(['can:admin'])->group(function () {
+        Route::get('/user/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
+        Route::put('/user/{id}', [UserController::class, 'update'])->name('user.update');
+        Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
+        Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
+        Route::post('/users', [UserController::class, 'store'])->name('user.store');
+    });
 
     // ROTA DE MODALIDADES
     // Route::resource('/modalidades', ModalidadeController::class);

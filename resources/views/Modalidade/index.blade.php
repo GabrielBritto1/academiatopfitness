@@ -98,7 +98,7 @@
                     </div>
                     <div class="form-group">
                         <label for="descricao">Descrição</label>
-                        <input type="text" class="form-control" id="descricao" name="descricao" required>
+                        <textarea class="form-control" name="descricao" id="descricao" required></textarea>
                     </div>
                     <div class="form-group">
                         <label for="duracao">Duração</label>
