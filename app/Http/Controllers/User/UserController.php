@@ -13,10 +13,16 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $query = User::with('roles');
+
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+
         $roles = Role::all();
-        $users = User::with('roles')->get();
+        $users = $query->paginate(10);
         return view('user.index', compact('users', 'roles'));
     }
 

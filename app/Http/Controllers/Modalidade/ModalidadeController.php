@@ -11,9 +11,18 @@ class ModalidadeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $modalidades = Modalidade::all();
+        $query = Modalidade::query();
+
+        if ($request->has('search')) {
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+            if ($request->input('status') !== null) {
+                $query->where('status', $request->input('status'));
+            }
+        }
+
+        $modalidades = $query->paginate(10);
         return view('modalidade.index', compact('modalidades'));
     }
 
