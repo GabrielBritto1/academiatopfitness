@@ -13,8 +13,11 @@
         <div class="card-header">
             <div class="card-tools">
                 <div class="btn-group" role="group" aria-label="...">
+                    <a href="#" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#modalFilter" title="Filtrar usuário">
+                        <i class="fas fa-fw fa-search"></i>
+                    </a>
                     @can('admin')
-                    <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo item">
+                    <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo usuário">
                         <i class="fas fa-fw fa-plus"></i>
                     </a>
                     @endcan
@@ -70,6 +73,7 @@
         </div>
         <!-- /.card-body -->
     </div>
+    {{ $users->appends(request()->query())->links('vendor.pagination.bootstrap-5') }}
     <!-- /.card -->
 </div>
 
@@ -117,25 +121,49 @@
         </div>
         <!-- /.modal-dialog -->
     </div>
-    @stop
+</div>
 
-    @section('css')
-    {{-- Add here extra stylesheets --}}
-    {{-- <link rel="stylesheet" href="/css/admin_custom.css"> --}}
-    @stop
+<div class="modal fade" id="modalFilter" tabindex="-1" role="dialog" aria-labelledby="modalFilterLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Filtrar Usuário</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="GET" action="{{ route('user.index') }}">
+                    <div class="form-group">
+                        <input type="text" name="search" class="form-control" placeholder="Buscar..." value="{{ request('search') }}">
+                    </div>
+                    <button type="submit" class="btn btn-warning">Filtrar</button>
+                </form>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</div>
+@stop
 
-    @section('js')
-    <script src="/js/User/index.js"></script>
+@section('css')
+{{-- Add here extra stylesheets --}}
+{{-- <link rel="stylesheet" href="/css/admin_custom.css"> --}}
+@stop
 
-    @if(session('success'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                icon: 'success',
-                title: 'Sucesso!',
-                text: "{{ session('success') }}",
-            });
+@section('js')
+<script src="/js/User/index.js"></script>
+
+@if(session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            icon: 'success',
+            title: 'Sucesso!',
+            text: "{{ session('success') }}",
         });
-    </script>
-    @endif
-    @stop
+    });
+</script>
+@endif
+@stop
