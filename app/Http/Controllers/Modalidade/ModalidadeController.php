@@ -61,7 +61,8 @@ class ModalidadeController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $modalidadeShow = Modalidade::findOrFail($id);
+        return view('modalidade.show', compact('modalidadeShow'));
     }
 
     /**

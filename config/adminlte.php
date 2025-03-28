@@ -300,15 +300,15 @@ return [
 
     'menu' => [
         // Navbar items:
-        [
-            'type' => 'navbar-search',
-            'text' => 'search',
-            'topnav_right' => true,
-        ],
-        [
-            'type' => 'fullscreen-widget',
-            'topnav_right' => true,
-        ],
+        // [
+        //     'type' => 'navbar-search',
+        //     'text' => 'search',
+        //     'topnav_right' => true,
+        // ],
+        // [
+        //     'type' => 'fullscreen-widget',
+        //     'topnav_right' => true,
+        // ],
 
         // Sidebar items:
         // [
@@ -335,7 +335,32 @@ return [
         [
             'text' => 'Modalidades',
             'url' => 'modalidades',
-            'icon' => 'fas fa-fw fa-tags',
+            'icon' => 'fas fa-chalkboard',
+        ],
+        [
+            'text' => 'Planos',
+            'url' => 'planos',
+            'icon' => 'fas fa-file-invoice-dollar',
+        ],
+        [
+            'text' => 'Gestão Financeira',
+            'url' => '#',
+            'icon' => 'fas fa-hand-holding-usd',
+            'can' => 'admin',
+        ],
+        [
+            'text' => 'Relatórios',
+            'icon' => 'fas fa-file-pdf',
+            'submenu' => [
+                [
+                    'text' => 'level_one',
+                    'url' => '#',
+                ],
+                [
+                    'text' => 'level_one',
+                    'url' => '#',
+                ],
+            ],
         ],
         // ['header' => 'account_settings'],
         // [
@@ -347,44 +372,6 @@ return [
         //     'text' => 'change_password',
         //     'url' => 'admin/settings',
         //     'icon' => 'fas fa-fw fa-lock',
-        // ],
-        // [
-        //     'text' => 'multilevel',
-        //     'icon' => 'fas fa-fw fa-share',
-        //     'submenu' => [
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //         ],
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //             'submenu' => [
-        //                 [
-        //                     'text' => 'level_two',
-        //                     'url' => '#',
-        //                 ],
-        //                 [
-        //                     'text' => 'level_two',
-        //                     'url' => '#',
-        //                     'submenu' => [
-        //                         [
-        //                             'text' => 'level_three',
-        //                             'url' => '#',
-        //                         ],
-        //                         [
-        //                             'text' => 'level_three',
-        //                             'url' => '#',
-        //                         ],
-        //                     ],
-        //                 ],
-        //             ],
-        //         ],
-        //         [
-        //             'text' => 'level_one',
-        //             'url' => '#',
-        //         ],
-        //     ],
         // ],
         // ['header' => 'labels'],
         // [
