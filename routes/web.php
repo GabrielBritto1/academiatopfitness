@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Modalidade\ModalidadeController;
+use App\Http\Controllers\Planos\PlanosController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -36,4 +37,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/modalidade/create', [ModalidadeController::class, 'create'])->name('modalidade.create');
     Route::post('/modalidades', [ModalidadeController::class, 'store'])->name('modalidade.store');
     Route::post('/modalidade/ativar/{id}', [ModalidadeController::class, 'ativador'])->name('modalidade.ativar');
+
+    // ROTA DE PLANOS
+    Route::get('/planos', [PlanosController::class, 'index'])->name('planos.index');
+    Route::post('/planos', [PlanosController::class, 'store'])->name('planos.store');
+    Route::get('/planos/create', [PlanosController::class, 'create'])->name('planos.create');
+    Route::get('/planos/{id}', [PlanosController::class, 'show'])->name('planos.show');
+    Route::get('/planos/{id}/edit', [PlanosController::class, 'edit'])->name('planos.edit');
+    Route::put('/planos/{id}', [PlanosController::class, 'update'])->name('planos.update');
+    Route::delete('/planos/{id}', [PlanosController::class, 'destroy'])->name('planos.destroy');
 });
