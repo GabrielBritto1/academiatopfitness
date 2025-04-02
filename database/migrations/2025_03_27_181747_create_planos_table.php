@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('planos', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->float('preco');
+            $table->float('preco_pre_vencimento');
+            $table->float('preco_pos_vencimento');
+            $table->string('dia_vencimento')->nullable();
             $table->string('color');
             $table->timestamps();
         });

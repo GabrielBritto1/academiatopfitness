@@ -33,7 +33,9 @@ class PlanosController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'preco' => 'required|numeric',
+            'preco_pre_vencimento' => 'required|numeric',
+            'preco_pos_vencimento' => 'required|numeric',
+            'dia_vencimento' => 'nullable|string|max:255',
             'color' => 'required|string|max:255',
             'beneficios' => 'sometimes|array',
             'beneficios.*.descricao' => 'required|string|max:255',
@@ -46,7 +48,9 @@ class PlanosController extends Controller
             // Criar o plano
             $plano = Planos::create([
                 'name' => $validated['name'],
-                'preco' => $validated['preco'],
+                'preco_pre_vencimento' => $validated['preco_pre_vencimento'],
+                'preco_pos_vencimento' => $validated['preco_pos_vencimento'],
+                'dia_vencimento' => $validated['dia_vencimento'] ?? null,
                 'color' => $validated['color'],
             ]);
 

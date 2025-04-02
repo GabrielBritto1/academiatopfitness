@@ -31,13 +31,15 @@
                                 {{ $plano->name }}
                             </div>
                         </div>
-                        <h1 class="text-bold">R$ {{ $plano->preco }}<span class="text-sm text-muted">/por mês</span></h1>
                         <ul>
                             @foreach ($plano->beneficios as $beneficio)
-                            <li class="list-group mb-2">{{ $beneficio->beneficio }}</li>
+                            <li class="list-group mb-2 d-inline"><i class="fas fa-fw fa-check text-success"></i> {{ $beneficio->beneficio }}</li>
+                            <br>
                             @endforeach
                         </ul>
-                        <div class="text-center">
+                        <h1 class="text-bold"><span class="text-sm text-muted">Até o dia</span> <span class="text-sm text-muted">({{ $plano->dia_vencimento }})</span> R$ {{ $plano->preco_pre_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
+                        <h1 class="text-bold"><span class="text-sm text-muted">Após o dia</span> <span class="text-sm text-muted">({{ $plano->dia_vencimento }})</span> R$ {{ $plano->preco_pos_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
+                        <!-- <div class="text-center">
                             <button class="btn btn-warning text-bold" onclick="alert('Plano {{ $plano->name }} Selecionado')">Selecionar Plano</button>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -59,7 +61,7 @@
                                     </form>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
                 @empty
@@ -88,8 +90,16 @@
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="preco">Preço (R$)</label>
-                        <input type="number" step="0.01" class="form-control" id="preco" name="preco" required>
+                        <label for="preco_pre_vencimento">Preço antes do vencimento (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="preco_pre_vencimento" name="preco_pre_vencimento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="preco_pos_vencimento">Preço após o vencimento (R$)</label>
+                        <input type="number" step="0.01" class="form-control" id="preco_pos_vencimento" name="preco_pos_vencimento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dia_vencimento">Dia do vencimento</label>
+                        <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" required>
                     </div>
                     <div class="form-group">
                         <label for="beneficios">Benefícios</label>
