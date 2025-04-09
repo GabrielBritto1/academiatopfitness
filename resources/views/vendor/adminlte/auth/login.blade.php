@@ -88,7 +88,7 @@
     {{-- Password reset link --}}
     @if($passResetUrl)
         <p class="my-0">
-            <a href="{{ $passResetUrl }}">
+            <a href="{{ $passResetUrl }}" style="color:#333333;">
                 {{ __('adminlte::adminlte.i_forgot_my_password') }}
             </a>
         </p>
@@ -97,7 +97,7 @@
     {{-- Register link --}}
     @if($registerUrl)
         <p class="my-0">
-            <a href="{{ $registerUrl }}">
+            <a href="{{ $registerUrl }}" style="color:#333333;">
                 {{ __('adminlte::adminlte.register_a_new_membership') }}
             </a>
         </p>
