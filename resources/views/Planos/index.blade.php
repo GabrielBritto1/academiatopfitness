@@ -37,9 +37,9 @@
                             <br>
                             @endforeach
                         </ul>
-                        <h1 class="text-bold"><span class="text-sm text-muted">Até o dia</span> <span class="text-sm text-muted">({{ $plano->dia_vencimento }})</span> R$ {{ $plano->preco_pre_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
-                        <h1 class="text-bold"><span class="text-sm text-muted">Após o dia</span> <span class="text-sm text-muted">({{ $plano->dia_vencimento }})</span> R$ {{ $plano->preco_pos_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
-                        <!-- <div class="text-center">
+                        <h1 class="text-bold"><span class="text-sm text-muted">Até o dia</span> <span class="text-sm text-muted">{{ $plano->dia_vencimento }}</span> R$ {{ $plano->preco_pre_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
+                        <h1 class="text-bold"><span class="text-sm text-muted">Após o dia</span> <span class="text-sm text-muted">{{ $plano->dia_vencimento }}</span> R$ {{ $plano->preco_pos_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
+                        <div class="text-center">
                             <button class="btn btn-warning text-bold" onclick="alert('Plano {{ $plano->name }} Selecionado')">Selecionar Plano</button>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -61,7 +61,7 @@
                                     </form>
                                 </div>
                             </div>
-                        </div> -->
+                        </div>
                     </div>
                 </div>
                 @empty
@@ -127,6 +127,7 @@
     .planos-card:hover {
         transform: scale(1.05);
         transition: all 0.3s ease-in-out;
+        z-index: 1;
     }
 </style>
 @stop

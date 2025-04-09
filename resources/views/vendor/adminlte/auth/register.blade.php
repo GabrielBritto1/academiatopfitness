@@ -102,7 +102,7 @@
 
 @section('auth_footer')
     <p class="my-0">
-        <a href="{{ $loginUrl }}">
+        <a href="{{ $loginUrl }}" style="color:#333333;">
             {{ __('adminlte::adminlte.i_already_have_a_membership') }}
         </a>
     </p>
