@@ -93,6 +93,7 @@
          <div class="modal-body">
             <form action="{{ route('modalidade.store') }}" method="POST">
                @csrf
+               <input type="hidden" name="academia_unidade_id" id="academia_unidade_id" value="{{ $unidade->id }}">
                <div class="form-group">
                   <label for="name">Nome</label>
                   <input type="text" class="form-control" id="name" name="name" required>
@@ -117,4 +118,58 @@
       <!-- /.modal-dialog -->
    </div>
 </div>
+@stop
+
+@section('js')
+<script>
+   // Função AJAX para ativar modalidade
+   $('.ativar-btn').on('click', function() {
+      let id = $(this).data('id');
+      Swal.fire({
+         title: 'Processando...',
+         text: 'Aguarde enquanto o status da modalidade é mudado.',
+         allowOutsideClick: false,
+         allowEscapeKey: false,
+         allowEnterKey: false,
+         didOpen: () => {
+            Swal.showLoading();
+         }
+      });
+      $.ajax({
+         url: `/modalidade/ativar/${id}`,
+         method: 'POST',
+         data: {
+            _token: '{{ csrf_token() }}'
+         },
+         success: function() {
+            Swal.fire({
+               title: 'Ativado!',
+               text: 'O status da modalidade foi mudado com sucesso.',
+               icon: 'success'
+            }).then(() => {
+               location.reload();
+            })
+         },
+         error: function() {
+            Swal.fire({
+               title: 'Erro!',
+               text: 'Houve um problema ao mudar o status a modalidade.',
+               icon: 'error'
+            })
+         }
+      });
+   });
+</script>
+
+@if(session('success'))
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+         icon: 'success',
+         title: 'Sucesso!',
+         text: "{{ session('success') }}",
+      });
+   });
+</script>
+@endif
 @stop
