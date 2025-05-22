@@ -334,7 +334,7 @@ return [
         ],
         [
             'text' => 'Modalidades',
-            'url' => 'modalidades',
+            'url' => 'unidades',
             'icon' => 'fas fa-chalkboard',
         ],
         [
