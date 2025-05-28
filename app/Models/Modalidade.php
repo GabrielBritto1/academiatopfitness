@@ -17,4 +17,11 @@ class Modalidade extends Model
    {
       return $this->belongsToMany(AcademiaUnidade::class, 'academia_unidade_modalidades');
    }
+
+   public function alunosUnidades()
+   {
+      return $this->belongsToMany(User::class, 'aluno_modalidade_unidade')
+         ->withPivot('academia_unidade_id')
+         ->withTimestamps();
+   }
 }

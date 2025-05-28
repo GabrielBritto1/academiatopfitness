@@ -333,6 +333,11 @@ return [
             'icon' => 'fas fa-fw fa-users',
         ],
         [
+            'text' => 'Alunos',
+            'url' => 'alunos',
+            'icon' => 'fas fa-chalkboard-teacher',
+        ],
+        [
             'text' => 'Modalidades',
             'url' => 'unidades',
             'icon' => 'fas fa-chalkboard',
