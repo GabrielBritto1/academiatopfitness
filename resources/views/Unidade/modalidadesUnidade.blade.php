@@ -4,7 +4,7 @@
 @section('title', 'Modalidades')
 
 @section('content_header')
-<h1><i class="fas fa-fw fa-tags"></i> Modalidades</h1>
+<h1><i class="fas fa-fw fa-tags"></i> Modalidades {{ $unidade->nome }}</h1>
 @stop
 
 @section('content')

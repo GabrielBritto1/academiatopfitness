@@ -3,6 +3,7 @@
 use App\Http\Controllers\Modalidade\AcademiaUnidadeController;
 use App\Http\Controllers\Modalidade\ModalidadeController;
 use App\Http\Controllers\Planos\PlanosController;
+use App\Http\Controllers\User\AlunoController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,13 @@ Route::middleware(['auth'])->group(function () {
       Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
       Route::post('/users', [UserController::class, 'store'])->name('user.store');
    });
+
+   // ROTA DE ALUNOS
+   Route::get('/alunos', [AlunoController::class, 'index'])->name('aluno.index');
+   Route::post('/alunos', [AlunoController::class, 'store'])->name('aluno.store');
+   Route::get('/aluno/{id}', [AlunoController::class, 'show'])->name('aluno.show');
+   Route::get('/aluno/{id}/edit', [AlunoController::class, 'edit'])->name('aluno.edit');
+   Route::put('/aluno/{id}', [AlunoController::class, 'update'])->name('aluno.update');
 
    // ROTA DE MODALIDADES
    // Route::resource('/modalidades', ModalidadeController::class);
