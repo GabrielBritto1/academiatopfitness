@@ -60,4 +60,10 @@ Route::middleware(['auth'])->group(function () {
    Route::get('/planos/{id}/edit', [PlanosController::class, 'edit'])->name('planos.edit');
    Route::put('/planos/{id}', [PlanosController::class, 'update'])->name('planos.update');
    Route::delete('/planos/{id}', [PlanosController::class, 'destroy'])->name('planos.destroy');
+   Route::view('planos/carrinho', 'planos.carrinho')->name('planos.carrinho');
+
+   // ROTA DE RELATÓRIOS
+   Route::get('/relatorio', function () {
+      return view('relatorio.index');
+   })->name('relatorio.index');
 });
