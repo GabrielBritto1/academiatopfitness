@@ -338,7 +338,7 @@ return [
             'icon' => 'fas fa-chalkboard-teacher',
         ],
         [
-            'text' => 'Modalidades',
+            'text' => 'Unidades/Modalidades',
             'url' => 'unidades',
             'icon' => 'fas fa-chalkboard',
         ],
@@ -355,17 +355,8 @@ return [
         ],
         [
             'text' => 'Relatórios',
+            'url' => 'relatorio',
             'icon' => 'fas fa-file-pdf',
-            'submenu' => [
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                ],
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                ],
-            ],
         ],
         // ['header' => 'account_settings'],
         // [
