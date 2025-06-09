@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
       DB::table('roles')->insert([
          'name' => 'admin',
       ]);
+      DB::table('roles')->insert([
+         'name' => 'aluno',
+      ]);
       DB::table('role_user')->insert([
          'user_id' => 1,
          'role_id' => 1,

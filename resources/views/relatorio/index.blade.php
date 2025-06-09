@@ -2,7 +2,7 @@
 @section("title", "Relatórios")
 
 @section("content_header")
-<h1>Relatório</h1>
+<h1 class="text-bold">Relatório</h1>
 @stop
 
 @section("content")

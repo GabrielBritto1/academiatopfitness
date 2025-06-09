@@ -3,7 +3,7 @@
 @section('title', 'Planos')
 
 @section('content_header')
-<h1><i class="fas fa-file-invoice-dollar"></i> Planos</h1>
+<h1 class="text-bold"><i class="fas fa-file-invoice-dollar"></i> Planos</h1>
 @stop
 
 @section('content')
@@ -19,58 +19,58 @@
          </a>
       </div>
    </div>
-</div>
-@endcan
+   @endcan
 
-<div class="container-fluid">
-   <div class="row">
-      <div class="col-12">
-         <div class="row mt-4">
-            @forelse($planos as $plano)
-            <div class="col-sm-3 mb-3">
-               <div class="position-relative p-3 bg-dark elevation-3 planos-card" style="height: auto">
-                  <div class="ribbon-wrapper ribbon-xl">
-                     <div class="ribbon text-lg" style="background-color: {{ $plano->color }};">
-                        {{ $plano->name }}
-                     </div>
-                  </div>
-                  <ul>
-                     @foreach ($plano->beneficios as $beneficio)
-                     <li class="list-group mb-2 d-inline"><i class="fas fa-fw fa-check text-success"></i> {{ $beneficio->beneficio }}</li>
-                     <br>
-                     @endforeach
-                  </ul>
-                  <h1 class="text-bold"><span class="text-sm text-muted">Até o dia</span> <span class="text-sm text-muted">{{ $plano->dia_vencimento }}</span> R$ {{ $plano->preco_pre_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
-                  <h1 class="text-bold"><span class="text-sm text-muted">Após o dia</span> <span class="text-sm text-muted">{{ $plano->dia_vencimento }}</span> R$ {{ $plano->preco_pos_vencimento }}<span class="text-sm text-muted">/por mês</span></h1>
-                  <div class="text-center">
-                     <button class="btn btn-warning text-bold" onclick="alert('Plano {{ $plano->name }} Selecionado')">Selecionar Plano</button>
-                     <div class="btn-group">
-                        <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                           <i class="fas fa-cog"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-right bg-dark">
+   <div class="container-fluid">
+      @foreach ($planosPorUnidade as $unidadeNome => $planos)
+      <div class="my-2">
+         <h3 class="text-bold text-uppercase">{{ $unidadeNome }}</h3>
+         <div class="row">
+            <div class="col-12">
+               <div class="row">
+                  @forelse($planos as $plano)
+                  <div class="col-md-4">
+                     <div class="card">
+                        <div class="card-header" style="background-color: {{ $plano->color }};">
+                           <h3 class="card-title text-bold text-white text-uppercase">{{ $plano->name }}</h3>
+                        </div>
+                        <div class="card-body">
+                           <ul class="list-group">
+                              @foreach ($plano->beneficios as $beneficio)
+                              <li class="list-group-item">
+                                 <i class="fas fa-check text-success"></i> {{ $beneficio->beneficio }}
+                              </li>
+                              @endforeach
+                           </ul>
+                           <h4 class="mt-3 text-muted text-sm">ATÉ O DIA <span class="text-bold text-lg">{{ $plano->dia_vencimento }}: R$ {{ $plano->preco_pre_vencimento }}/mês</span></h4>
+                           <h4 class="text-muted text-sm">APÓS O DIA <span class="text-bold text-lg">{{ $plano->dia_vencimento }}: R$ {{ $plano->preco_pos_vencimento }}/mês</span></h4>
+                        </div>
+                        <div class="card-footer text-center">
+                           <!-- <button class="btn btn-warning" onclick="alert('Plano {{ $plano->name }} Selecionado')">Selecionar Plano</button> -->
                            @can('admin')
-                           <a class="dropdown-item bg-warning" href="{{ route('planos.edit', $plano->id) }}">
-                              <i class="fas fa-edit"></i> Editar
-                           </a>
-                           @endcan
-                           <div class="dropdown-divider"></div>
-                           <form action="{{ route('planos.destroy', $plano->id) }}" method="POST">
-                              @csrf
-                              @method('DELETE')
-                              <button class="dropdown-item bg-danger" type="submit">
-                                 <i class="fas fa-trash"></i> Excluir
-                              </button>
-                           </form>
+                           <div class="btn-group">
+                              <a class="btn btn-sm bg-warning" href="{{ route('planos.edit', $plano->id) }}">
+                                 <i class="fas fa-edit"></i>
+                              </a>
+                              <a class="btn btn-sm bg-danger" href="#">
+                                 <i class="fas fa-trash"></i>
+                              </a>
+                              @endcan
+                           </div>
                         </div>
                      </div>
                   </div>
+                  @empty
+                  <div class="col-12">
+                     <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Nenhum plano encontrado.
+                     </div>
+                  </div>
+                  @endforelse
                </div>
             </div>
-            @empty
-            <p>Não há nenhum plano cadastrado</p>
-            @endforelse
          </div>
+         @endforeach
       </div>
    </div>
 </div>
@@ -88,6 +88,15 @@
          <div class="modal-body">
             <form action="{{ route('planos.store') }}" method="POST">
                @csrf
+               <div class="form-group">
+                  <label for="academia_unidade_id">Unidade</label>
+                  <select class="form-control" id="academia_unidade_id" name="academia_unidade_id" required>
+                     <option value="" selected disabled>Selecione uma Unidade</option>
+                     @foreach ($unidades as $unidade)
+                     <option value="{{ $unidade->id }}">{{ $unidade->nome }}</option>
+                     @endforeach
+                  </select>
+               </div>
                <div class="form-group">
                   <label for="name">Nome do Plano</label>
                   <input type="text" class="form-control" id="name" name="name" required>

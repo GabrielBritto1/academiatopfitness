@@ -3,7 +3,7 @@
 @section('title', 'Editar Modalidade')
 
 @section('content_header')
-<h1><i class="fas fa fa-tags"></i> Editar Modalidade</h1>
+<h1 class="text-bold"><i class="fas fa fa-tags"></i> Editar Modalidade</h1>
 @stop
 
 @section('content')

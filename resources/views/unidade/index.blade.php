@@ -4,7 +4,7 @@
 @section('title', 'Modalidades')
 
 @section('content_header')
-<h1><i class="fas fa-fw fa-tags"></i> Modalidades</h1>
+<h1 class="text-bold"><i class="fas fa-fw fa-tags"></i> Modalidades</h1>
 @stop
 
 @section('content')
@@ -40,7 +40,11 @@
                   </a>
                </div>
                @empty
-               <span class="info-box-text">Não há unidades cadastradas</span>
+               <div class="col-12">
+                  <div class="alert alert-info">
+                     <i class="fas fa-info-circle"></i> Não há unidades no banco de dados.
+                  </div>
+               </div>
                @endforelse
             </div>
          </div>
@@ -51,7 +55,7 @@
       <div class="modal-dialog">
          <div class="modal-content">
             <div class="modal-header">
-               <h4 class="modal-title">Cadastrar Modalidade</h4>
+               <h4 class="modal-title">Cadastrar Unidade</h4>
                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">×</span>
                </button>
