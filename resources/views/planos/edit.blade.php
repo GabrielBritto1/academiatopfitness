@@ -57,15 +57,63 @@
          </div>
          <div class="form-group">
             <label for="status">Unidade</label>
-            <select class="form-control" id="academia_unidade_id" name="academia_unidade_id" required>
-               <option value="" selected disabled>Selecione uma Unidade</option>
+            <select class="form-control" id="academia_unidade_id" name="academia_unidade_id[]" required>
                @foreach ($unidades as $unidade)
-               <option value="{{ $unidade->id }}" {{ $planos->academia_unidade_id == $unidade->id ? 'selected' : '' }}>{{ $unidade->nome }}</option>
-               @endforeach
+               <option value="{{ $unidade->id }}" {{ $planos->unidades->contains('id', $unidade->id) ? 'selected' : '' }}>{{ $unidade->nome }}</option> @endforeach
             </select>
          </div>
          <button type="submit" class="btn btn-warning text-bold">Editar Plano</button>
       </form>
    </div>
 </div>
+@stop
+
+@section('js')
+<script>
+   $(document).ready(function() {
+      let beneficioCount = 0;
+
+      // Adicionar novo campo de benefício
+      $('#add-beneficio').click(function() {
+         beneficioCount++;
+         $('#beneficios-container').append(`
+            <div class="beneficio-item input-group mb-2" data-id="${beneficioCount}">
+                <input type="text" name="beneficios[${beneficioCount}][descricao]" 
+                       class="form-control" placeholder="Descrição do benefício" required>
+                <input type="number" name="beneficios[${beneficioCount}][ordem]" 
+                       class="form-control" placeholder="Ordem" value="${beneficioCount}" required>
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-danger remove-beneficio">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `);
+      });
+
+      // Remover benefício
+      $(document).on('click', '.remove-beneficio', function() {
+         $(this).closest('.beneficio-item').remove();
+      });
+
+      // Enviar formulário via AJAX
+      $('#planoForm').submit(function(e) {
+         e.preventDefault();
+
+         $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+               // Fechar modal e recarregar a página ou atualizar a tabela
+               $('#modalDefault').modal('hide');
+               window.location.reload(); // Ou atualize apenas a seção necessária
+            },
+            error: function(xhr) {
+               alert('Erro: ' + xhr.responseJSON.message);
+            }
+         });
+      });
+   });
+</script>
 @stop

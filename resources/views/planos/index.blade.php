@@ -44,6 +44,7 @@
                            </ul>
                            <h4 class="mt-3 text-muted text-sm">ATÉ O DIA <span class="text-bold text-lg">{{ $plano->dia_vencimento }}: R$ {{ $plano->preco_pre_vencimento }}/mês</span></h4>
                            <h4 class="text-muted text-sm">APÓS O DIA <span class="text-bold text-lg">{{ $plano->dia_vencimento }}: R$ {{ $plano->preco_pos_vencimento }}/mês</span></h4>
+                           <img src="{{ asset('img/iso logo mono.png') }}" alt="Iso Logo" class="img-fluid float-right" style="max-width: 100px; opacity: 0.3;">
                         </div>
                         <div class="card-footer text-center">
                            <!-- <button class="btn btn-warning" onclick="alert('Plano {{ $plano->name }} Selecionado')">Selecionar Plano</button> -->
