@@ -180,10 +180,7 @@ class PlanosController extends Controller
       $alunos = User::whereHas('roles', function ($query) {
          $query->where('name', 'aluno');
       })->get();
-      $unidades = AcademiaUnidade::all();
-      $unidades->each(function ($unidade) {
-         $unidade->modalidades = $unidade->modalidades()->get();
-      });
+      $unidades = AcademiaUnidade::with('planos')->get();
 
       return view('carrinhodeplanos.index', compact('planos', 'alunos', 'unidades'));
    }
