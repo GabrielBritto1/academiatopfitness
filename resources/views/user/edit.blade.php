@@ -3,28 +3,36 @@
 @section('title', 'Editar Usuário')
 
 @section('content_header')
-<h1>Editar Usuário</h1>
+<h1 class="text-bold">Editar Usuário</h1>
 @stop
 
 @section('content')
 <form method="POST" action="{{ route('user.update',$userEdit->id) }}">
-    @csrf
-    @method('PUT')
-    <div class="card-body">
-        <div class="form-group">
-            <label for="name">Nome</label>
-            <input type="text" name="name" class="form-control" value="{{ $userEdit->name }}" required>
-        </div>
+   @csrf
+   @method('PUT')
+   <div class="card-body">
+      <div class="form-group">
+         <label for="name">Nome</label>
+         <input type="text" name="name" class="form-control" value="{{ $userEdit->name }}" required>
+      </div>
 
-        <div class="form-group">
-            <label for="email">E-mail</label>
-            <input type="email" name="email" class="form-control" value="{{ $userEdit->email }}" required>
-        </div>
-    </div>
+      <div class="form-group">
+         <label for="email">E-mail</label>
+         <input type="email" name="email" class="form-control" value="{{ $userEdit->email }}" required>
+      </div>
 
-    <div class="card-footer">
-        <button type="submit" class="btn btn-primary">Editar Usuário</button>
-    </div>
+      <div class="form-group">
+         <select name="roles" id="roles">
+            @foreach ($roles as $role)
+            <option value="{{$role->id}}">{{$role->formatted_name}}</option>
+            @endforeach
+         </select>
+      </div>
+   </div>
+
+   <div class="card-footer">
+      <button type="submit" class="btn btn-primary">Editar Usuário</button>
+   </div>
 </form>
 @stop
 
@@ -35,6 +43,6 @@
 
 @section('js')
 <script>
-    console.log("Hi, I'm using the Laravel-AdminLTE package!");
+   console.log("Hi, I'm using the Laravel-AdminLTE package!");
 </script>
 @stop

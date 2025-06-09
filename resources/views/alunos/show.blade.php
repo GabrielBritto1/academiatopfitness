@@ -3,7 +3,7 @@
 @section('title', 'Visualizar Aluno')
 
 @section('content_header')
-<h1>Visualizar Aluno</h1>
+<h1 class="text-bold">Visualizar Aluno</h1>
 @stop
 
 @section('content')

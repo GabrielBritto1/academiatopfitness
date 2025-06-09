@@ -4,7 +4,7 @@
 @section('title', 'Modalidades')
 
 @section('content_header')
-<h1><i class="fas fa-fw fa-tags"></i> Modalidades</h1>
+<h1 class="text-bold"><i class="fas fa-fw fa-tags"></i> Modalidades</h1>
 @stop
 
 @section('content')
@@ -71,8 +71,11 @@
                         </button>
                      </form>
                   </td>
-                  @empty
-                  <td>Não há modalidades no banco de dados</td>
+                  @empty<div class="col-12">
+                     <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Não há modalidades no banco de dados.
+                     </div>
+                  </div>
                </tr>
                @endforelse
             </tbody>

@@ -1,7 +1,7 @@
 @extends('adminlte::page')
 @section('title', 'Alunos')
 @section('content_header')
-<h1><i class="fas fa-chalkboard-teacher"></i> Alunos</h1>
+<h1 class="text-bold"><i class="fas fa-chalkboard-teacher"></i> Alunos</h1>
 @stop
 @section('content')
 @section('content')
@@ -72,9 +72,13 @@
                      </form>
                      @endcan
                   </td>
-                  @empty
-                  <td>Não há usuários no banco de dados</td>
                </tr>
+               @empty
+               <div class="col-12">
+                  <div class="alert alert-info">
+                     <i class="fas fa-info-circle"></i> Não há alunos no banco de dados.
+                  </div>
+               </div>
                @endforelse
             </tbody>
          </table>

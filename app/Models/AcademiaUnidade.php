@@ -22,4 +22,9 @@ class AcademiaUnidade extends Model
          ->withPivot('modalidade_id')
          ->withTimestamps();
    }
+
+   public function planos()
+   {
+      return $this->belongsToMany(Planos::class, 'academia_unidade_planos');
+   }
 }
