@@ -18,12 +18,12 @@ class AlunoController extends Controller
    {
       $unidades = AcademiaUnidade::all();
       $unidades->each(function ($unidade) {
-         $unidade->modalidades = $unidade->modalidades()->get();
+         $unidade->planos = $unidade->planos()->get();
       });
       $roles = Role::all();
       $alunos = User::whereHas('roles', function ($query) {
          $query->where('name', 'aluno');
-      })->with(['modalidadesUnidades'])
+      })->with(['planos'])
          ->paginate(10);
 
       return view('alunos.index', compact('alunos', 'roles', 'unidades'));
@@ -47,7 +47,7 @@ class AlunoController extends Controller
          'email' => 'required|string|email|max:255|unique:users',
          'password' => 'required|string|min:8|confirmed',
          'academia_unidade_id' => 'required|exists:academia_unidades,id',
-         'modalidade_id' => 'required|exists:modalidades,id',
+         'plano_id' => 'required|exists:planos,id',
       ]);
 
       $user = User::create([
@@ -57,7 +57,7 @@ class AlunoController extends Controller
       ]);
       $user->roles()->attach(2);
 
-      $user->modalidadesUnidades()->attach($validated['modalidade_id'], [
+      $user->planos()->attach($validated['plano_id'], [
          'academia_unidade_id' => $validated['academia_unidade_id']
       ]);
 
@@ -108,5 +108,14 @@ class AlunoController extends Controller
    public function destroy(string $id)
    {
       //
+   }
+
+   public function toggleStatus(string $id)
+   {
+      $user = User::findOrFail($id);
+      $user->status = !$user->status;
+      $user->save();
+
+      return redirect()->route('aluno.index')->with('success', 'Status do aluno atualizado com sucesso!');
    }
 }

@@ -23,4 +23,11 @@ class Planos extends Model
    {
       return $this->belongsToMany(AcademiaUnidade::class, 'academia_unidade_planos');
    }
+
+   public function alunos()
+   {
+      return $this->belongsToMany(User::class, 'aluno_plano_unidade', 'plano_id', 'user_id')
+         ->withPivot('academia_unidade_id')
+         ->withTimestamps();
+   }
 }

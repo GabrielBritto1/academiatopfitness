@@ -107,9 +107,9 @@ class PlanosController extends Controller
    {
       $planos = Planos::findOrFail($id);
       $unidades = AcademiaUnidade::all();
-      $unidades->each(function ($unidade) {
-         $unidade->modalidades = $unidade->modalidades()->get();
-      });
+      // $unidades->each(function ($unidade) {
+      //    $unidade->modalidades = $unidade->modalidades()->get();
+      // });
       return view('planos.edit', compact('planos', 'unidades'));
    }
 

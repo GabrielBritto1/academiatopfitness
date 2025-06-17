@@ -71,7 +71,8 @@
                         </button>
                      </form>
                   </td>
-                  @empty<div class="col-12">
+                  @empty
+                  <div class="col-12">
                      <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i> Não há modalidades no banco de dados.
                      </div>

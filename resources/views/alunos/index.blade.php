@@ -30,7 +30,8 @@
                   <th>Email</th>
                   <th>Cargo</th>
                   <th>Unidade</th>
-                  <th>Modalidade</th>
+                  <th>Plano</th>
+                  <th>Status</th>
                   <th></th>
                </tr>
             </thead>
@@ -45,14 +46,25 @@
                   </td>
                   @endforeach
                   <td class="align-middle">
-                     @foreach ($aluno->modalidadesUnidades as $modalidade)
-                     {{ \App\Models\AcademiaUnidade::find($modalidade->pivot->academia_unidade_id)->nome ?? '-' }}<br>
-                     @endforeach
+                     @forelse ($aluno->planos as $plano)
+                     {{ \App\Models\AcademiaUnidade::find($plano->pivot->academia_unidade_id)->nome ?? '-' }}<br>
+                     @empty
+                     <span class="text-muted">Nenhum plano associado</span>
+                     @endforelse
                   </td>
                   <td class="align-middle">
-                     @foreach ($aluno->modalidadesUnidades as $modalidade)
-                     {{ $modalidade->name }}<br>
-                     @endforeach
+                     @forelse ($aluno->planos as $plano)
+                     {{ $plano->name }}<br>
+                     @empty
+                     <span class="text-muted">Nenhum plano associado</span>
+                     @endforelse
+                  </td>
+                  <td class="align-middle">
+                     @if($aluno->status)
+                     <span class="badge badge-success text-uppercase">Ativo</span>
+                     @else
+                     <span class="badge badge-danger text-uppercase">Inativo</span>
+                     @endif
                   </td>
                   <td class="align-middle overflow-visible-btn " style="text-align: right">
                      <div class="btn-group">
@@ -60,7 +72,9 @@
                         <a class="btn btn-warning" href="{{ route('aluno.edit',$aluno->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                         @endcan
                         <a class="btn btn-success" href="{{ route('aluno.show',$aluno->id) }}"><i class="fas fa fa-eye"></i></a>
-                        <a class="btn btn-info" href="{{ route('aluno.show',$aluno->id) }}"><i class="fas fa fa-check"></i></a>
+                        <button type="button" class="btn btn-info ativar-btn" data-id="{{ $aluno->id }}">
+                           <i class="fas fa-check"></i>
+                        </button>
                      </div>
                      @can('admin')
                      <form action="{{ route('user.destroy', $aluno->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
@@ -119,9 +133,9 @@
                   </select>
                </div>
                <div class="form-group">
-                  <label for="modalidade_id">Modalidade</label>
-                  <select class="form-control" name="modalidade_id" id="modalidade_id" disabled>
-                     <option value="">Selecione a Modalidade</option>
+                  <label for="plano_id">Plano</label>
+                  <select class="form-control" name="plano_id" id="plano_id" disabled>
+                     <option value="">Selecione o Plano</option>
                      @foreach ($unidades as $unidade)
                      <option value="{{ $unidade->id }}">{{ $unidade->nome }}</option>
                      @endforeach
@@ -149,26 +163,65 @@
 <script src="/js/User/index.js"></script>
 
 <script>
-   // SCRIPT PARA CARREGAR AS MODALIDADES BASEADO NA UNIDADE SELECIONADA
+   $('.ativar-btn').on('click', function() {
+      let id = $(this).data('id');
+      Swal.fire({
+         title: 'Processando...',
+         text: 'Aguarde o status do aluno ser mudado.',
+         allowOutsideClick: false,
+         allowEscapeKey: false,
+         allowEnterKey: false,
+         didOpen: () => {
+            Swal.showLoading();
+         }
+      });
+      $.ajax({
+         url: `/aluno/${id}/toggleStatus`,
+         method: 'POST',
+         data: {
+            _token: '{{ csrf_token() }}'
+         },
+         success: function() {
+            Swal.fire({
+               title: 'Ativado!',
+               text: 'Status do aluno mudado com sucesso.',
+               icon: 'success'
+            }).then(() => {
+               location.reload();
+            })
+         },
+         error: function() {
+            Swal.fire({
+               title: 'Erro!',
+               text: 'Houve um problema ao mudar o status do aluno.',
+               icon: 'error'
+            })
+         }
+      });
+   });
+</script>
+
+<script>
+   // SCRIPT PARA CARREGAR OS PLANOS BASEADO NA UNIDADE SELECIONADA
    const unidades = @json($unidades);
    document.getElementById('academia_unidade_id').addEventListener('change', function() {
       const unidadeId = this.value;
-      const modalidadeSelect = document.getElementById('modalidade_id');
-      modalidadeSelect.innerHTML = '<option value="">Selecione a Modalidade</option>';
+      const PlanoSelect = document.getElementById('plano_id');
+      PlanoSelect.innerHTML = '<option value="">Selecione o Plano</option>';
 
       if (!unidadeId) {
-         modalidadeSelect.disabled = true;
+         PlanoSelect.disabled = true;
          return;
       }
       // Busca a unidade selecionada
       const unidade = unidades.find(u => u.id == unidadeId);
-      if (unidade && unidade.modalidades.length > 0) {
-         unidade.modalidades.forEach(function(modalidade) {
-            modalidadeSelect.innerHTML += `<option value="${modalidade.id}">${modalidade.name}</option>`;
+      if (unidade && unidade.planos.length > 0) {
+         unidade.planos.forEach(function(plano) {
+            PlanoSelect.innerHTML += `<option value="${plano.id}">${plano.name}</option>`;
          });
-         modalidadeSelect.disabled = false;
+         PlanoSelect.disabled = false;
       } else {
-         modalidadeSelect.disabled = true;
+         PlanoSelect.disabled = true;
       }
    });
 </script>

@@ -20,7 +20,7 @@ class Modalidade extends Model
 
    public function alunosUnidades()
    {
-      return $this->belongsToMany(User::class, 'aluno_modalidade_unidade')
+      return $this->belongsToMany(User::class, 'aluno_plano_unidade')
          ->withPivot('academia_unidade_id')
          ->withTimestamps();
    }

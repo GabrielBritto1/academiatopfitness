@@ -38,6 +38,7 @@
             </thead>
             <tbody id="tabela-usuarios">
                @forelse ($users as $user)
+               @if(!$user->roles->contains('name', 'admin'))
                <tr>
                   <td class="align-middle">{{$user->id}}</td>
                   <td class="align-middle">{{$user->name}}</td>
@@ -64,6 +65,7 @@
                      </form>
                      @endcan
                   </td>
+                  @endif
                   @empty
                   <div class="col-12">
                      <div class="alert alert-info">

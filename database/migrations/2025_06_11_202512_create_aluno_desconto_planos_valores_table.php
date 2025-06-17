@@ -11,11 +11,13 @@ return new class extends Migration
     */
    public function up(): void
    {
-      Schema::create('aluno_modalidade_unidade', function (Blueprint $table) {
+      Schema::create('aluno_desconto_planos_valores', function (Blueprint $table) {
          $table->id();
          $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-         $table->foreignId('academia_unidade_id')->constrained('academia_unidades')->onDelete('cascade');
-         $table->foreignId('modalidade_id')->constrained('modalidades')->onDelete('cascade');
+         $table->foreignId('plano_id')->constrained('planos')->onDelete('cascade');
+         $table->float('valor_inicial')->default(0);
+         $table->float('valor_total')->default(0);
+         $table->float('valor_desconto')->default(0);
          $table->timestamps();
       });
    }
@@ -25,6 +27,6 @@ return new class extends Migration
     */
    public function down(): void
    {
-      Schema::dropIfExists('aluno_modalidade_unidade');
+      Schema::dropIfExists('aluno_desconto_planos_valores');
    }
 };
