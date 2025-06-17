@@ -53,7 +53,8 @@ class AcademiaUnidadeController extends Controller
     */
    public function edit(string $id)
    {
-      //
+      $unidades = AcademiaUnidade::findOrFail($id);
+      return view('unidade.edit', compact('unidades'));
    }
 
    /**
@@ -72,10 +73,10 @@ class AcademiaUnidadeController extends Controller
       //
    }
 
-   public function modalidades($id)
-   {
-      $unidade = AcademiaUnidade::with('modalidades')->findOrFail($id);
-      $modalidades = $unidade->modalidades;
-      return view('unidade.modalidadesUnidade', compact('unidade', 'modalidades'));
-   }
+   // public function modalidades($id)
+   // {
+   //    $unidade = AcademiaUnidade::with('modalidades')->findOrFail($id);
+   //    $modalidades = $unidade->modalidades;
+   //    return view('unidade.modalidadesUnidade', compact('unidade', 'modalidades'));
+   // }
 }

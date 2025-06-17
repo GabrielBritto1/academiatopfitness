@@ -338,7 +338,7 @@ return [
             'icon' => 'fas fa-chalkboard-teacher',
         ],
         [
-            'text' => 'Unidades/Modalidades',
+            'text' => 'Unidades',
             'url' => 'unidades',
             'icon' => 'fas fa-chalkboard',
         ],

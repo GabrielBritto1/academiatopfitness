@@ -55,9 +55,9 @@ class User extends Authenticatable
       return $this->roles->map->abilities->flatten()->pluck('name');
    }
 
-   public function modalidadesUnidades()
+   public function planos()
    {
-      return $this->belongsToMany(Modalidade::class, 'aluno_modalidade_unidade')
+      return $this->belongsToMany(Planos::class, 'aluno_plano_unidade', 'user_id', 'plano_id')
          ->withPivot('academia_unidade_id')
          ->withTimestamps();
    }

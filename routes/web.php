@@ -35,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
    Route::get('/aluno/{id}', [AlunoController::class, 'show'])->name('aluno.show');
    Route::get('/aluno/{id}/edit', [AlunoController::class, 'edit'])->name('aluno.edit');
    Route::put('/aluno/{id}', [AlunoController::class, 'update'])->name('aluno.update');
+   Route::post('/aluno/{id}/toggleStatus', [AlunoController::class, 'toggleStatus'])->name('aluno.toggleStatus');
 
    // ROTA DE MODALIDADES
    // Route::resource('/modalidades', ModalidadeController::class);
@@ -50,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
    // ROTA DE UNIDADES
    Route::get('/unidades', [AcademiaUnidadeController::class, 'index'])->name('unidade.index');
    Route::post('/unidades', [AcademiaUnidadeController::class, 'store'])->name('unidade.store');
+   Route::get('/unidade/{id}/edit', [AcademiaUnidadeController::class, 'edit'])->name('unidade.edit');
    Route::get('/unidade/{id}/modalidadesUnidade', [AcademiaUnidadeController::class, 'modalidades'])->name('unidade.modalidadesUnidade');
 
    // ROTA DE PLANOS

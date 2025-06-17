@@ -18,8 +18,8 @@ class AcademiaUnidade extends Model
 
    public function alunosModalidades()
    {
-      return $this->belongsToMany(User::class, 'aluno_modalidade_unidade')
-         ->withPivot('modalidade_id')
+      return $this->belongsToMany(User::class, 'aluno_plano_unidade')
+         ->withPivot('plano_id')
          ->withTimestamps();
    }
 

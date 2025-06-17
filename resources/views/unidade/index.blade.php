@@ -1,10 +1,10 @@
 @extends('adminlte::page')
 @section('plugins.sweetalert2', true)
 
-@section('title', 'Modalidades')
+@section('title', 'Unidades')
 
 @section('content_header')
-<h1 class="text-bold"><i class="fas fa-fw fa-tags"></i> Modalidades</h1>
+<h1 class="text-bold"><i class="fas fa-fw fa-chalkboard"></i> Unidades</h1>
 @stop
 
 @section('content')
@@ -28,7 +28,7 @@
             <div class="row">
                @forelse ($unidades as $unidade)
                <div class="col-sm-6 col-lg-4">
-                  <a href="{{ route('unidade.modalidadesUnidade', $unidade->id) }}" style="color: black">
+                  <a href="{{ route('unidade.edit', $unidade->id) }}" style="color: black">
                      <div class="info-box">
                         <span class="info-box-icon bg-secondary">
                            <img src="{{ asset('img/iso logo mono.png') }}" alt="unidade 1" class="img-fluid" style="width: 50px;">
