@@ -123,7 +123,7 @@
                   <label for="email">Email</label>
                   <input type="email" class="form-control" id="email" name="email" required>
                </div>
-               <div class="form-group">
+               <!-- <div class="form-group">
                   <label for="academia_unidade_id">Unidade</label>
                   <select class="form-control" name="academia_unidade_id" id="academia_unidade_id">
                      <option value="">Selecione a Unidade</option>
@@ -142,14 +142,55 @@
                   </select>
                </div>
                <div class="form-group">
-                  <label for="password">Senha</label>
-                  <input type="password" name="password" class="form-control" required>
+                  <label for="forma_pagamento">Forma de Pagamento</label>
+                  <select class="form-control" name="forma_pagamento" id="forma_pagamento">
+                     <option value="" selected disabled>Selecione a Forma de Pagamento</option>
+                     <option value="boleto">Boleto</option>
+                     <option value="cartao">Cartão</option>
+                     <option value="pix">Pix</option>
+                     <option value="dinheiro">Dinheiro</option>
+                  </select>
+               </div> -->
+               <div class="modal-footer">
+                  <button type="submit" class="btn btn-warning text-bold">Inserir Aluno</button>
+               </div>
+            </form>
+         </div>
+         <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+   </div>
+</div>
+
+<div class="modal fade" id="modalFilter" tabindex="-1" role="dialog" aria-labelledby="modalFilterLabel" aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h4 class="modal-title">Filtrar Aluno</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">×</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <form method="GET" action="{{ route('aluno.index') }}">
+               <div class="form-group">
+                  <label for="search">Nome</label>
+                  <input type="text" name="search" class="form-control" placeholder="Buscar..." value="{{ request('search') }}">
                </div>
                <div class="form-group">
-                  <label for="password_confirmation">Confirme a Senha</label>
-                  <input type="password" name="password_confirmation" class="form-control" required>
+                  <label for="status">Status</label>
+                  <select class="form-control" name="status" id="status">
+                     <option value="">Todos</option>
+                     <option value="1">Ativo</option>
+                     <option value="0">Inativo</option>
+                  </select>
                </div>
-               <button type="submit" class="btn btn-warning text-bold">Criar Usuário</button>
+               <button type="submit" class="btn btn-warning text-bold">Filtrar</button>
+               <button type="submit" class="btn btn-secondary text-bold">
+                  <a class="text-white" href="{{ route('aluno.index') }}">
+                     Limpar Filtros
+                  </a>
+               </button>
             </form>
          </div>
          <!-- /.modal-content -->
