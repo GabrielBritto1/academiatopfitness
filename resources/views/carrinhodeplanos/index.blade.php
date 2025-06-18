@@ -13,11 +13,13 @@
       </div>
    </div>
    <div class="card-body">
-      <form action="#">
+      <form action="{{ route('aluno.store2') }}" method="POST">
+         @csrf
          <div class="row">
             <div class="col">
-               <label for="aluno">Aluno</label>
-               <select class="form-control" name="aluno" id="aluno">
+               <label for="aluno">Aluno <button type="button" class="btn btn-success btn-sm"><i class="fas fa-plus"></i></button>
+               </label>
+               <select class="form-control" name="user_id" id="user_id">
                   <option value="" selected disabled>Selecione um Aluno</option>
                   @foreach ($alunos as $aluno)
                   <option value="{{ $aluno->id }}">{{ $aluno->name }}</option>
@@ -55,7 +57,17 @@
                </div>
             </div>
          </div>
-         <button type="button" class="btn btn-success btn-sm mt-3" id="add-unidade-plano"><i class="fas fa-plus"></i></button>
+         <button type="button" class="btn btn-success btn-sm my-3" id="add-unidade-plano"><i class="fas fa-plus"></i></button>
+         <div class="form-group">
+            <label for="forma_pagamento">Forma de Pagamento</label>
+            <select class="form-control" name="forma_pagamento" id="forma_pagamento" required>
+               <option value="" selected disabled>Selecione uma Forma de Pagamento</option>
+               <option value="dinheiro">Dinheiro</option>
+               <option value="cartao">Cartão</option>
+               <option value="pix">Pix</option>
+               <option value="boleto">Boleto</option>
+            </select>
+         </div>
          <div class="mt-3 float-right">
             <strong>Valor total:</strong> <span class="valor-com-desconto">R$ 0.00</span>
          </div>

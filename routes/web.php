@@ -36,6 +36,8 @@ Route::middleware(['auth'])->group(function () {
    Route::get('/aluno/{id}/edit', [AlunoController::class, 'edit'])->name('aluno.edit');
    Route::put('/aluno/{id}', [AlunoController::class, 'update'])->name('aluno.update');
    Route::post('/aluno/{id}/toggleStatus', [AlunoController::class, 'toggleStatus'])->name('aluno.toggleStatus');
+   Route::post('/carrinhodeplanos', [AlunoController::class, 'store2'])->name('aluno.store2');
+
 
    // ROTA DE MODALIDADES
    // Route::resource('/modalidades', ModalidadeController::class);
