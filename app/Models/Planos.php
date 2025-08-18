@@ -8,9 +8,7 @@ class Planos extends Model
 {
    protected $fillable = [
       'name',
-      'preco_pre_vencimento',
-      'preco_pos_vencimento',
-      'dia_vencimento',
+      'preco',
       'color',
    ];
 
