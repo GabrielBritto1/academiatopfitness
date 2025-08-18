@@ -22,12 +22,12 @@
    @endcan
 
    <div class="container-fluid">
-      @foreach ($planosPorUnidade as $unidadeNome => $planos)
+      @forelse ($planosPorUnidade as $unidadeNome => $planos)
       <div class="my-2">
-         <h3 class="text-bold text-uppercase">{{ $unidadeNome }}</h3>
+         <h3 class="text-bold text-uppercase px-3">{{ $unidadeNome }}</h3>
          <div class="row">
             <div class="col-12">
-               <div class="row">
+               <div class="row px-3">
                   @forelse($planos as $plano)
                   <div class="col-md-4">
                      <div class="card">
@@ -35,15 +35,14 @@
                            <h3 class="card-title text-bold text-white text-uppercase">{{ $plano->name }}</h3>
                         </div>
                         <div class="card-body">
-                           <ul class="list-group">
+                           <h4 class="text-muted text-sm text-bold text-lg">R$ {{ $plano->preco }} por mês</span></h4>
+                           <ul class="list-group my-3">
                               @foreach ($plano->beneficios as $beneficio)
                               <li class="list-group-item">
                                  <i class="fas fa-check text-success"></i> {{ $beneficio->beneficio }}
                               </li>
                               @endforeach
                            </ul>
-                           <h4 class="mt-3 text-muted text-sm">ATÉ O DIA <span class="text-bold text-lg">{{ $plano->dia_vencimento }}: R$ {{ $plano->preco_pre_vencimento }}/mês</span></h4>
-                           <h4 class="text-muted text-sm">APÓS O DIA <span class="text-bold text-lg">{{ $plano->dia_vencimento }}: R$ {{ $plano->preco_pos_vencimento }}/mês</span></h4>
                            <img src="{{ asset('img/iso logo mono.png') }}" alt="Iso Logo" class="img-fluid float-right" style="max-width: 100px; opacity: 0.3;">
                         </div>
                         <div class="card-footer text-center">
@@ -71,7 +70,13 @@
                </div>
             </div>
          </div>
-         @endforeach
+         @empty
+         <div class="col-12">
+            <div class="alert alert-info">
+               <i class="fas fa-info-circle"></i> Nenhum plano encontrado.
+            </div>
+         </div>
+         @endforelse
       </div>
    </div>
 </div>
@@ -103,16 +108,8 @@
                   <input type="text" class="form-control" id="name" name="name" required>
                </div>
                <div class="form-group">
-                  <label for="preco_pre_vencimento">Preço antes do vencimento (R$)</label>
-                  <input type="number" step="0.01" class="form-control" id="preco_pre_vencimento" name="preco_pre_vencimento" required>
-               </div>
-               <div class="form-group">
-                  <label for="preco_pos_vencimento">Preço após o vencimento (R$)</label>
-                  <input type="number" step="0.01" class="form-control" id="preco_pos_vencimento" name="preco_pos_vencimento" required>
-               </div>
-               <div class="form-group">
-                  <label for="dia_vencimento">Dia do vencimento</label>
-                  <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" required>
+                  <label for="preco">Preço (R$)</label>
+                  <input type="number" step="0.01" class="form-control" id="preco" name="preco" required>
                </div>
                <div class="form-group">
                   <label for="beneficios">Benefícios</label>

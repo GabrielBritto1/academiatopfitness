@@ -91,11 +91,7 @@
       if (!unidade || !unidade.planos) return '<option value="" selected disabled>Selecione um Plano</option>';
       let options = '<option value="" selected disabled>Selecione um Plano</option>';
       unidade.planos.forEach(plano => {
-         if (plano.dia_vencimento >= diaHoje) {
-            options += `<option value="${plano.id}" data-preco="${plano.preco_pre_vencimento}">${plano.name}</option>`;
-         } else {
-            options += `<option value="${plano.id}" data-preco="${plano.preco_pos_vencimento}">${plano.name}</option>`;
-         }
+         options += `<option value="${plano.id}" data-preco="${plano.preco}">${plano.name}</option>`;
       });
       return options;
    }

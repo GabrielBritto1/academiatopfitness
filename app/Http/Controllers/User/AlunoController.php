@@ -84,17 +84,7 @@ class AlunoController extends Controller
 
          // Busca o plano para pegar os valores
          $plano = Planos::find($plano_id);
-
-         // Verifica se o dia atual é maior que o dia de vencimento do plano
-         $diaVencimento = (int) $plano->dia_vencimento;
-         $diaAtual = now()->day;
-
-         if ($diaVencimento && $diaAtual > $diaVencimento) {
-            $valor = $plano->preco_pos_vencimento;
-         } else {
-            $valor = $plano->preco_pre_vencimento;
-         }
-
+         $valor = $plano->preco;
          $valor_total = $valor - ($valor * ($desconto / 100));
 
          $user->planos()->attach($plano_id, [

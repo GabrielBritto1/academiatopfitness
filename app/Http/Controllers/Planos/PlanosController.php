@@ -51,9 +51,7 @@ class PlanosController extends Controller
    {
       $validated = $request->validate([
          'name' => 'required|string|max:255',
-         'preco_pre_vencimento' => 'required|numeric',
-         'preco_pos_vencimento' => 'required|numeric',
-         'dia_vencimento' => 'nullable|string|max:255',
+         'preco' => 'required|numeric',
          'color' => 'required|string|max:255',
          'beneficios' => 'sometimes|array',
          'beneficios.*.descricao' => 'required|string|max:255',
@@ -67,9 +65,7 @@ class PlanosController extends Controller
          // Criar o plano
          $plano = Planos::create([
             'name' => $validated['name'],
-            'preco_pre_vencimento' => $validated['preco_pre_vencimento'],
-            'preco_pos_vencimento' => $validated['preco_pos_vencimento'],
-            'dia_vencimento' => $validated['dia_vencimento'] ?? null,
+            'preco' => $validated['preco'],
             'color' => $validated['color'],
          ]);
          $plano->unidades()->attach($validated['academia_unidade_id']);
@@ -120,9 +116,7 @@ class PlanosController extends Controller
    {
       $validated = $request->validate([
          'name' => 'required|string|max:255',
-         'preco_pre_vencimento' => 'required|numeric',
-         'preco_pos_vencimento' => 'required|numeric',
-         'dia_vencimento' => 'nullable|string|max:255',
+         'preco' => 'required|numeric',
          'color' => 'required|string|max:255',
          'beneficios' => 'sometimes|array',
          'beneficios.*.descricao' => 'required|string|max:255',
@@ -137,9 +131,7 @@ class PlanosController extends Controller
 
          $plano->update([
             'name' => $validated['name'],
-            'preco_pre_vencimento' => $validated['preco_pre_vencimento'],
-            'preco_pos_vencimento' => $validated['preco_pos_vencimento'],
-            'dia_vencimento' => $validated['dia_vencimento'] ?? null,
+            'preco' => $validated['preco'],
             'color' => $validated['color'],
          ]);
          $plano->unidades()->sync([$validated['academia_unidade_id']]);

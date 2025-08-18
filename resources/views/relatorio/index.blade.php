@@ -2,7 +2,7 @@
 @section("title", "Relatórios")
 
 @section("content_header")
-<h1 class="text-bold">Relatório</h1>
+<h1 class="text-bold"><i class="fas fa-file-pdf"> </i>Relatório</h1>
 @stop
 
 @section("content")
@@ -10,11 +10,11 @@
    <section class="pb-5">
       <div class="row">
          <div class="col-sm-6 col-lg-4" data-titulo="Relatório de aluno por unidade" title="Relatório de aluno por unidade">
-            <a href="#" style="color: black">
+            <a href="{{ route('relatorio.relatorio_financeiro_filtro') }}" style="color: black">
                <div class="info-box">
                   <span class="info-box-icon bg-secondary"><i class="fas fa-file-pdf"></i></span>
                   <div class="info-box-content">
-                     <span class="info-box-text">Relatório de aluno por unidade</span>
+                     <span class="info-box-text">Relatório Fincanceiro</span>
                   </div>
                </div>
             </a>

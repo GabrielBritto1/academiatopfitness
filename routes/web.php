@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\AvaliacaoController;
 use App\Http\Controllers\Modalidade\AcademiaUnidadeController;
 use App\Http\Controllers\Modalidade\ModalidadeController;
+use App\Http\Controllers\PlanilhaTreinoController;
 use App\Http\Controllers\Planos\PlanosController;
+use App\Http\Controllers\RelatorioPdfController;
 use App\Http\Controllers\User\AlunoController;
+use App\Http\Controllers\User\ProfessorController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +42,9 @@ Route::middleware(['auth'])->group(function () {
    Route::post('/aluno/{id}/toggleStatus', [AlunoController::class, 'toggleStatus'])->name('aluno.toggleStatus');
    Route::post('/carrinhodeplanos', [AlunoController::class, 'store2'])->name('aluno.store2');
 
+   // ROTA DE PROFESSORES
+   Route::get('/professores', [ProfessorController::class, 'index'])->name('professor.index');
+   Route::post('/professores', [ProfessorController::class, 'store'])->name('professor.store');
 
    // ROTA DE MODALIDADES
    // Route::resource('/modalidades', ModalidadeController::class);
@@ -66,8 +73,33 @@ Route::middleware(['auth'])->group(function () {
    Route::delete('/planos/{id}', [PlanosController::class, 'destroy'])->name('planos.destroy');
    Route::get('/carrinhodeplanos', [PlanosController::class, 'carrinho'])->name('planos.carrinho');
 
+   // ROTA DE PLANILHA DE TREINO
+   Route::get('/planilha-treino', [PlanilhaTreinoController::class, 'index'])->name('planilha-treino.index');
+   Route::get('/planilha-treino/create', [PlanilhaTreinoController::class, 'create'])->name('planilha-treino.create');
+   Route::post('/planilha-treino', [PlanilhaTreinoController::class, 'store'])->name('planilha-treino.store');
+   Route::get('/planilha-treino/{id}', [PlanilhaTreinoController::class, 'show'])->name('planilha-treino.show');
+   Route::get('/planilha-treino/{id}/edit', [PlanilhaTreinoController::class, 'edit'])->name('planilha-treino.edit');
+   Route::put('/planilha-treino/{id}', [PlanilhaTreinoController::class, 'update'])->name('planilha-treino.update');
+   Route::delete('/planilha-treino/{id}', [PlanilhaTreinoController::class, 'destroy'])->name('planilha-treino.destroy');
+   Route::get('/planilha-treino/{id}/planilha_treino_pdf', [PlanilhaTreinoController::class, 'planilhaTreinoPdf'])->name('planilha-treino.planilha_treino_pdf');
+
+   // ROTA DE AVALIAÇÕES
+   Route::get('/avaliacao', [AvaliacaoController::class, 'index'])->name('avaliacao.index');
+   Route::get('/avaliacao/create', [AvaliacaoController::class, 'create'])->name('avaliacao.create');
+   Route::post('/avaliacao', [AvaliacaoController::class, 'store'])->name('avaliacao.store');
+   Route::get('/avaliacao/{id}', [AvaliacaoController::class, 'show'])->name('avaliacao.show');
+   Route::get('/avaliacao/{id}/edit', [AvaliacaoController::class, 'edit'])->name('avaliacao.edit');
+   Route::put('/avaliacao/{id}', [AvaliacaoController::class, 'update'])->name('avaliacao.update');
+   Route::delete('/avaliacao/{id}', [AvaliacaoController::class, 'destroy'])->name('avaliacao.destroy');
+   Route::get('/avaliacao/{id}/avaliacao_pdf', [AvaliacaoController::class, 'avaliacaoPdf'])->name('avaliacao.avaliacao_pdf');
+   Route::get('/avaliacao/{id}/avaliacao_grafico', [AvaliacaoController::class, 'avaliacaoGrafico'])->name('avaliacao.avaliacao_grafico');
+
    // ROTA DE RELATÓRIOS
    Route::get('/relatorio', function () {
       return view('relatorio.index');
    })->name('relatorio.index');
+   Route::get('/relatorio/relatorio_financeiro_filtro', function () {
+      return view('relatorio.relatorio_financeiro_filtro');
+   })->name('relatorio.relatorio_financeiro_filtro');
+   Route::get('/relatorio/relatorio_pdf/relatorio_financeiro', [RelatorioPdfController::class, 'relatorioFinanceiro'])->name('relatorio.relatorio_pdf.relatorio_financeiro');
 });

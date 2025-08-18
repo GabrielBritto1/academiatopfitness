@@ -1,7 +1,7 @@
 @extends('adminlte::page')
-@section('title', 'Alunos')
+@section('title', 'Professores')
 @section('content_header')
-<h1 class="text-bold"><i class="fas fa-user-friends"></i> Alunos</h1>
+<h1 class="text-bold"><i class="fas fa-chalkboard-teacher"></i> Professores</h1>
 @stop
 @section('content')
 <div class="col-12">
@@ -35,31 +35,31 @@
                </tr>
             </thead>
             <tbody id="tabela-usuarios">
-               @forelse ($alunos as $aluno)
+               @forelse ($professores as $professor)
                <tr>
-                  <td class="align-middle">{{$aluno->name}}</td>
-                  <td class="align-middle">{{$aluno->email}}</td>
-                  @foreach ($aluno->roles as $role)
+                  <td class="align-middle">{{$professor->name}}</td>
+                  <td class="align-middle">{{$professor->email}}</td>
+                  @foreach ($professor->roles as $role)
                   <td class="align-middle">
                      {{$role->formatted_name}}
                   </td>
                   @endforeach
                   <td class="align-middle">
-                     @forelse ($aluno->planos as $plano)
+                     @forelse ($professor->planos as $plano)
                      {{ \App\Models\AcademiaUnidade::find($plano->pivot->academia_unidade_id)->nome ?? '-' }}<br>
                      @empty
                      <span class="text-muted">Nenhum plano associado</span>
                      @endforelse
                   </td>
                   <td class="align-middle">
-                     @forelse ($aluno->planos as $plano)
+                     @forelse ($professor->planos as $plano)
                      {{ $plano->name }}<br>
                      @empty
                      <span class="text-muted">Nenhum plano associado</span>
                      @endforelse
                   </td>
                   <td class="align-middle">
-                     @if($aluno->status)
+                     @if($professor->status)
                      <span class="badge badge-success text-uppercase">Ativo</span>
                      @else
                      <span class="badge badge-danger text-uppercase">Inativo</span>
@@ -68,15 +68,15 @@
                   <td class="align-middle overflow-visible-btn " style="text-align: right">
                      <div class="btn-group">
                         @can('admin')
-                        <a class="btn btn-warning" href="{{ route('aluno.edit',$aluno->id) }}"><i class="fas fa fa-edit text-white"></i></a>
+                        <a class="btn btn-warning" href="{{ route('aluno.edit',$professor->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                         @endcan
-                        <a class="btn btn-success" href="{{ route('aluno.show',$aluno->id) }}"><i class="fas fa fa-eye"></i></a>
-                        <button type="button" class="btn btn-info ativar-btn" data-id="{{ $aluno->id }}">
+                        <a class="btn btn-success" href="{{ route('aluno.show',$professor->id) }}"><i class="fas fa fa-eye"></i></a>
+                        <button type="button" class="btn btn-info ativar-btn" data-id="{{ $professor->id }}">
                            <i class="fas fa-check"></i>
                         </button>
                      </div>
                      @can('admin')
-                     <form action="{{ route('user.destroy', $aluno->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
+                     <form action="{{ route('user.destroy', $professor->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
                         @csrf
                         @method('DELETE')
                         <button class="btn btn-danger" type="submit">
@@ -89,7 +89,7 @@
                @empty
                <div class="col-12">
                   <div class="alert alert-info">
-                     <i class="fas fa-info-circle"></i> Não há alunos no banco de dados.
+                     <i class="fas fa-info-circle"></i> Não há professor no banco de dados.
                   </div>
                </div>
                @endforelse
@@ -98,7 +98,7 @@
       </div>
       <!-- /.card-body -->
    </div>
-   {{ $alunos->appends(request()->query())->links('vendor.pagination.bootstrap-5') }}
+   {{ $professores->appends(request()->query())->links('vendor.pagination.bootstrap-5') }}
    <!-- /.card -->
 </div>
 
@@ -106,13 +106,13 @@
    <div class="modal-dialog">
       <div class="modal-content">
          <div class="modal-header">
-            <h4 class="modal-title">Inserir Aluno</h4>
+            <h4 class="modal-title">Inserir Professor</h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                <span aria-hidden="true">×</span>
             </button>
          </div>
          <div class="modal-body">
-            <form action="{{ route('aluno.store') }}" method="POST">
+            <form action="{{ route('professor.store') }}" method="POST">
                @csrf
                <div class="form-group">
                   <label for="name">Nome</label>
@@ -122,36 +122,8 @@
                   <label for="email">Email</label>
                   <input type="email" class="form-control" id="email" name="email" required>
                </div>
-               <!-- <div class="form-group">
-                  <label for="academia_unidade_id">Unidade</label>
-                  <select class="form-control" name="academia_unidade_id" id="academia_unidade_id">
-                     <option value="">Selecione a Unidade</option>
-                     @foreach ($unidades as $unidade)
-                     <option value="{{ $unidade->id }}">{{ $unidade->nome }}</option>
-                     @endforeach
-                  </select>
-               </div>
-               <div class="form-group">
-                  <label for="plano_id">Plano</label>
-                  <select class="form-control" name="plano_id" id="plano_id" disabled>
-                     <option value="">Selecione o Plano</option>
-                     @foreach ($unidades as $unidade)
-                     <option value="{{ $unidade->id }}">{{ $unidade->nome }}</option>
-                     @endforeach
-                  </select>
-               </div>
-               <div class="form-group">
-                  <label for="forma_pagamento">Forma de Pagamento</label>
-                  <select class="form-control" name="forma_pagamento" id="forma_pagamento">
-                     <option value="" selected disabled>Selecione a Forma de Pagamento</option>
-                     <option value="boleto">Boleto</option>
-                     <option value="cartao">Cartão</option>
-                     <option value="pix">Pix</option>
-                     <option value="dinheiro">Dinheiro</option>
-                  </select>
-               </div> -->
                <div class="modal-footer">
-                  <button type="submit" class="btn btn-warning text-bold">Inserir Aluno</button>
+                  <button type="submit" class="btn btn-warning text-bold">Inserir Professor</button>
                </div>
             </form>
          </div>

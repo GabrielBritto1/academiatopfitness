@@ -21,16 +21,8 @@
             <input type="text" class="form-control" id="name" name="name" value="{{ $planos->name }}" required>
          </div>
          <div class="form-group">
-            <label for="preco_pre_vencimento">Preço antes do vencimento (R$)</label>
-            <input type="number" step="0.01" class="form-control" id="preco_pre_vencimento" name="preco_pre_vencimento" value="{{ $planos->preco_pre_vencimento }}" required>
-         </div>
-         <div class="form-group">
-            <label for="preco_pos_vencimento">Preço após o vencimento (R$)</label>
-            <input type="number" step="0.01" class="form-control" id="preco_pos_vencimento" name="preco_pos_vencimento" value="{{ $planos->preco_pos_vencimento }}" required>
-         </div>
-         <div class="form-group">
-            <label for="dia_vencimento">Dia do vencimento</label>
-            <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" value="{{ $planos->dia_vencimento }}" required>
+            <label for="preco">Preço (R$)</label>
+            <input type="number" step="0.01" class="form-control" id="preco" name="preco" value="{{ $planos->preco }}" required>
          </div>
          <div class="form-group">
             <label for="beneficios">Benefícios</label>
