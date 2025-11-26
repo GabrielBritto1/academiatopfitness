@@ -5,7 +5,7 @@
 @stop
 @section('content')
 <div class="card">
-   <div class="card-body">
+   <div class="card-body table-responsive p-0">
       <table class="table table-hover text-nowrap">
          <thead>
             <tr>
@@ -17,10 +17,10 @@
          <tbody>
             @forelse($alunos as $aluno)
             <tr>
-               <td>{{ $aluno->name }}</td>
-               <td>{{ $aluno->email }}</td>
-               <td>
-                  <a href="{{ route('avaliacao.create', ['aluno_id' => $aluno->id, 'professor_id' => Auth::user()->id]) }}" class="btn btn-sm btn-primary">
+               <td class="align-middle">{{ $aluno->name }}</td>
+               <td class="align-middle">{{ $aluno->email }}</td>
+               <td class="align-middle">
+                  <a href="{{ route('avaliacao.create', ['aluno_id' => $aluno->id, 'professor_id' => Auth::user()->id]) }}" class="btn btn-sm btn-success">
                      <i class="fas fa-fw fa-plus"></i> Nova Avaliação
                   </a>
                   <a href="{{ route('avaliacao.show', $aluno->id) }}" class="btn btn-sm btn-info">
@@ -38,3 +38,16 @@
    </div>
 </div>
 @stop
+
+@section('js')
+@if(session('success'))
+<script>
+   Swal.fire({
+      icon: 'success',
+      title: 'Sucesso!',
+      text: '{{ session("success") }}',
+      confirmButtonText: 'OK'
+   });
+</script>
+@endif
+@endsection

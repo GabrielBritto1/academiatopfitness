@@ -72,7 +72,7 @@ class AvaliacaoController extends Controller
          'observacoes' => $validated['observacoes'],
       ]);
 
-      return redirect()->route('avaliacao.index')->with('success', 'Avaliação criada com sucesso!');
+      return redirect()->route('avaliacao.index')->with('success', 'Avaliação feita com sucesso!');
    }
 
    /**
@@ -117,7 +117,7 @@ class AvaliacaoController extends Controller
    {
       $aluno = User::findOrFail($id);
       $avaliacoes = Avaliacao::where('aluno_id', $id)->get();
-      $pdf = Pdf::loadView('avaliacao.avaliacao_pdf', compact('avaliacoes', 'aluno'))->setPaper('A3', 'landscape');
+      $pdf = Pdf::loadView('avaliacao.avaliacao_pdf', compact('avaliacoes', 'aluno'))->setPaper('A4');
       return $pdf->stream('avaliacao.pdf');
    }
    /**
