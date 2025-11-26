@@ -6,8 +6,8 @@
 @section('content')
 <div class="card">
    <div class="card-header">
-      <div class="card-tools">
-         <a href="{{ route('avaliacao.avaliacao_pdf', $aluno->id) }}" class="btn btn-info">
+      <div class="card-tools d-flex">
+         <a href="{{ route('avaliacao.avaliacao_pdf', $aluno->id) }}" class="btn btn-info mx-1">
             <i class="fas fa-fw fa-file-pdf"></i> Gerar documento das avaliações
          </a>
          <a href="{{ route('avaliacao.avaliacao_grafico', $aluno->id) }}" class="btn btn-secondary">
@@ -15,7 +15,7 @@
          </a>
       </div>
    </div>
-   <div class="card-body">
+   <div class="card-body table-responsive p-0">
       <table class="table table-hover text-nowrap">
          <thead>
             <tr>
@@ -27,11 +27,11 @@
          <tbody>
             @forelse($avaliacoes as $avaliacao)
             <tr>
-               <td>{{ $avaliacao->created_at->format('d/m/Y') }}</td>
-               <td>{{ $avaliacao->professor->name }}</td>
-               <td>
+               <td class="align-middle">{{ $avaliacao->created_at->format('d/m/Y') }}</td>
+               <td class="align-middle">{{ $avaliacao->professor->name }}</td>
+               <td class="align-middle">
                   <div class="btn-group">
-                     <a href="#" class="btn btn-success">
+                     <a href="#" class="btn btn-success btn-sm">
                         <i class="fas fa-fw fa-eye"></i>
                      </a>
                      <!-- <a href="{{ route('avaliacao.edit', $avaliacao->id) }}" class="btn btn-warning text-white">
