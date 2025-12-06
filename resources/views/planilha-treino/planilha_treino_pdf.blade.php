@@ -1,155 +1,86 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 
 <head>
    <meta charset="UTF-8">
-   <title>Planilha de Treino</title>
    <style>
-      * {
-         margin: 0;
-         padding: 0;
-         box-sizing: border-box;
-      }
-
       body {
-         background: #fff;
-         color: #222;
-         padding: 40px;
-         line-height: 1.6;
+         font-family: DejaVu Sans, sans-serif;
       }
 
       h1 {
-         text-align: left;
-         font-size: 24px;
-         font-weight: 500;
+         margin-bottom: 0;
       }
 
-      .img-fluid {
-         width: 50px;
-         height: auto;
-      }
-
-      .dia {
-         font-size: 18px;
-         font-weight: 600;
-         margin: 30px 0 10px;
-         border-bottom: 1px solid #ccc;
-         padding-bottom: 4px;
-         color: #333;
+      h2 {
+         margin-top: 40px;
       }
 
       table {
          width: 100%;
          border-collapse: collapse;
-         margin-bottom: 30px;
+         margin-top: 10px;
       }
 
       th,
       td {
-         border: 1px solid #ddd;
-         padding: 10px 12px;
-         text-align: left;
-         font-size: 14px;
+         border: 1px solid #000;
+         padding: 6px;
+         font-size: 13px;
       }
 
       th {
-         background: #f1f1f1;
-         font-weight: 600;
-      }
-
-      .aluno,
-      .data {
-         display: block;
-         text-align: right;
-         font-size: 18px;
-         font-weight: 500;
-      }
-
-      .center {
-         display: flex;
+         background: #eee;
       }
    </style>
 </head>
 
 <body>
-   <header>
-      <div class="center">
-         <h1><img src="{{ public_path('img/iso logo cor.png') }}" alt="Logo Top Fitness" class="img-fluid"> Planilha de Treino</h1>
-         <span class="aluno">Professor: {{ $professor->name }}</span>
-         <span class="data">Data: {{ date('d/m/Y') }}</span>
-      </div>
-   </header>
 
-   <div class="dia">
-      Aluno: {{ $aluno->name }} -
-      Treino A
-   </div>
+   <h1>Ficha de Treino – {{ $aluno->name }}</h1>
+   <p>Gerado em: {{ now()->format('d/m/Y') }}</p>
+
+   @foreach($aluno->planilhas as $planilha)
+   <h2 style="margin-top: 30px;">Planilha de {{ $planilha->created_at->format('d/m/Y') }}</h2>
+   <p><strong>Professor:</strong> {{ $planilha->professor->name ?? '—' }} | <strong>Unidade:</strong> {{ $planilha->unidade->nome ?? '—' }}</p>
+   
+   @foreach($planilha->treinos as $treino)
+   <h2>Treino {{ $treino->sigla }} – {{ $treino->nome }}</h2>
+   <p><strong>Dias:</strong> {{ $treino->dias_semana }}</p>
+
    <table>
       <thead>
          <tr>
             <th>Exercício</th>
             <th>Séries</th>
             <th>Repetições</th>
+            <th>Carga</th>
             <th>Descanso</th>
+            <th>Obs</th>
          </tr>
       </thead>
+
       <tbody>
+         @foreach($treino->exercicios as $ex)
          <tr>
-            <td>Agachamento</td>
-            <td>4</td>
-            <td>10</td>
-            <td>60s</td>
+            <td>{{ $ex->nome }}</td>
+            <td>{{ $ex->series }}</td>
+            <td>{{ $ex->repeticoes }}</td>
+            <td>{{ $ex->carga }}</td>
+            <td>{{ $ex->descanso }}</td>
+            <td>{{ $ex->observacao }}</td>
          </tr>
-         <tr>
-            <td>Leg Press</td>
-            <td>3</td>
-            <td>12</td>
-            <td>60s</td>
-         </tr>
-         <tr>
-            <td>Extensora</td>
-            <td>3</td>
-            <td>15</td>
-            <td>45s</td>
-         </tr>
-         <tr>
-            <td>Extensora</td>
-            <td>3</td>
-            <td>15</td>
-            <td>45s</td>
-         </tr>
-         <tr>
-            <td>Extensora</td>
-            <td>3</td>
-            <td>15</td>
-            <td>45s</td>
-         </tr>
-         <tr>
-            <td>Extensora</td>
-            <td>3</td>
-            <td>15</td>
-            <td>45s</td>
-         </tr>
-         <tr>
-            <td>Extensora</td>
-            <td>3</td>
-            <td>15</td>
-            <td>45s</td>
-         </tr>
-         <tr>
-            <td>Extensora</td>
-            <td>3</td>
-            <td>15</td>
-            <td>45s</td>
-         </tr>
-         <tr>
-            <td>Extensora</td>
-            <td>3</td>
-            <td>15</td>
-            <td>45s</td>
-         </tr>
+         @endforeach
       </tbody>
    </table>
+
+   @if($treino->observacoes)
+   <p><strong>Observações do Treino:</strong><br>{{ $treino->observacoes }}</p>
+   @endif
+
+   @endforeach
+   @endforeach
+
 </body>
 
 </html>

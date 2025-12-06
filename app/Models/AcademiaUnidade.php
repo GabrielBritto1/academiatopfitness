@@ -9,6 +9,7 @@ class AcademiaUnidade extends Model
    protected $fillable = [
       'nome',
       'endereco',
+      'logo',
    ];
 
    public function modalidades()
@@ -26,5 +27,10 @@ class AcademiaUnidade extends Model
    public function planos()
    {
       return $this->belongsToMany(Planos::class, 'academia_unidade_planos');
+   }
+
+   public function alunos()
+   {
+      return $this->hasMany(Aluno::class, 'unidade_id');
    }
 }

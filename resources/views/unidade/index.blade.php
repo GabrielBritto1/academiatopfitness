@@ -13,11 +13,8 @@
       <div class="card-header">
          <div class="card-tools">
             <div class="btn-group" role="group" aria-label="...">
-               <a href="#" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#modalFilter" title="Filtrar modalidade">
-                  <i class="fas fa-fw fa-search"></i>
-               </a>
-               <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar nova modalidade">
-                  <i class="fas fa-fw fa-plus"></i>
+               <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar nova unidade">
+                  <i class="fas fa-fw fa-plus"></i> Nova Unidade
                </a>
             </div>
          </div>
@@ -27,17 +24,34 @@
          <div class="container-fluid">
             <div class="row">
                @forelse ($unidades as $unidade)
-               <div class="col-sm-6 col-lg-4">
-                  <a href="{{ route('unidade.edit', $unidade->id) }}" style="color: black">
-                     <div class="info-box">
-                        <span class="info-box-icon bg-secondary">
-                           <img src="{{ asset('img/iso logo mono.png') }}" alt="unidade 1" class="img-fluid" style="width: 50px;">
-                        </span>
-                        <div class="info-box-content">
-                           <span class="info-box-text">{{ $unidade->nome }}</span>
+               <div class="col-sm-6 col-lg-4 mb-4">
+                  <div class="card shadow-sm h-100">
+                     <div class="card-body text-center">
+                        <div class="mb-3">
+                           @if($unidade->logo)
+                           <img src="{{ asset('storage/' . $unidade->logo) }}" 
+                                alt="{{ $unidade->nome }}" 
+                                class="img-fluid rounded" 
+                                style="max-height: 120px; max-width: 100%; object-fit: contain;">
+                           @else
+                           <div class="bg-secondary rounded d-flex align-items-center justify-content-center" 
+                                style="height: 120px;">
+                              <i class="fas fa-building fa-3x text-white"></i>
+                           </div>
+                           @endif
+                        </div>
+                        <h5 class="card-title font-weight-bold mb-2">{{ $unidade->nome }}</h5>
+                        <p class="card-text text-muted small mb-3">
+                           <i class="fas fa-map-marker-alt"></i> {{ $unidade->endereco }}
+                        </p>
+                        <div class="btn-group" role="group">
+                           <a href="{{ route('unidade.edit', $unidade->id) }}" 
+                              class="btn btn-warning btn-sm text-white">
+                              <i class="fas fa-edit"></i> Editar
+                           </a>
                         </div>
                      </div>
-                  </a>
+                  </div>
                </div>
                @empty
                <div class="col-12">
@@ -61,15 +75,23 @@
                </button>
             </div>
             <div class="modal-body">
-               <form action="{{ route('unidade.store') }}" method="POST">
+               <form action="{{ route('unidade.store') }}" method="POST" enctype="multipart/form-data">
                   @csrf
                   <div class="form-group">
-                     <label for="nome">Nome</label>
+                     <label for="nome">Nome *</label>
                      <input type="text" class="form-control" id="nome" name="nome" required>
                   </div>
                   <div class="form-group">
-                     <label for="endereco">Endereço</label>
-                     <input type="text" class="form-control" name="endereco" id="endereco" required></input>
+                     <label for="endereco">Endereço *</label>
+                     <input type="text" class="form-control" name="endereco" id="endereco" required>
+                  </div>
+                  <div class="form-group">
+                     <label for="logo">Logo da Unidade</label>
+                     <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="logo" name="logo" accept="image/*">
+                        <label class="custom-file-label" for="logo">Escolher arquivo...</label>
+                     </div>
+                     <small class="form-text text-muted">Formatos aceitos: JPG, PNG, GIF, SVG (máx. 2MB)</small>
                   </div>
                   <button type="submit" class="btn btn-warning text-bold">Adicionar Unidade</button>
                </form>
@@ -87,45 +109,20 @@
    @stop
 
    @section('js')
-   <script src="/js/Modalidade/index.js"></script>
-
    <script>
-      // Função AJAX para ativar modalidade
-      $('.ativar-btn').on('click', function() {
-         let id = $(this).data('id');
-         Swal.fire({
-            title: 'Processando...',
-            text: 'Aguarde enquanto a modalidade é ativada.',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            didOpen: () => {
-               Swal.showLoading();
-            }
-         });
-         $.ajax({
-            url: `/modalidade/ativar/${id}`,
-            method: 'POST',
-            data: {
-               _token: '{{ csrf_token() }}'
-            },
-            success: function() {
-               Swal.fire({
-                  title: 'Ativado!',
-                  text: 'A modalidade foi ativada com sucesso.',
-                  icon: 'success'
-               }).then(() => {
-                  location.reload();
-               })
-            },
-            error: function() {
-               Swal.fire({
-                  title: 'Erro!',
-                  text: 'Houve um problema ao mudar o status a modalidade.',
-                  icon: 'error'
-               })
-            }
-         });
+      // Preview do logo no modal de criação
+      $('#logo').on('change', function() {
+         const file = this.files[0];
+         if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+               // Preview pode ser adicionado aqui se necessário
+            };
+            reader.readAsDataURL(file);
+            $(this).next('.custom-file-label').html(file.name);
+         } else {
+            $(this).next('.custom-file-label').html('Escolher arquivo...');
+         }
       });
    </script>
 

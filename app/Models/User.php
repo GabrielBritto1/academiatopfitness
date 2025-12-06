@@ -55,10 +55,31 @@ class User extends Authenticatable
       return $this->roles->map->abilities->flatten()->pluck('name');
    }
 
+   public function aluno()
+   {
+      return $this->hasOne(Aluno::class);
+   }
+
    public function planos()
    {
       return $this->belongsToMany(Planos::class, 'aluno_plano_unidade', 'user_id', 'plano_id')
-         ->withPivot('academia_unidade_id')
+         ->withPivot([
+            'academia_unidade_id',
+            'valor_inicial',
+            'valor_total',
+            'valor_desconto',
+            'forma_pagamento',
+         ])
          ->withTimestamps();
+   }
+
+   public function avaliacoes()
+   {
+      return $this->hasMany(Avaliacao::class, 'aluno_id');
+   }
+
+   public function planilhas()
+   {
+      return $this->hasMany(PlanilhaTreino::class, 'aluno_id');
    }
 }

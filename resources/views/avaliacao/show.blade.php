@@ -7,9 +7,14 @@
 <div class="card">
    <div class="card-header">
       <div class="card-tools d-flex">
-         <a href="{{ route('avaliacao.avaliacao_pdf', $aluno->id) }}" class="btn btn-info mx-1">
+         <a href="{{ route('avaliacao.filtro_pdf', $aluno->id) }}" class="btn btn-info mx-1">
             <i class="fas fa-fw fa-file-pdf"></i> Gerar documento das avaliações
          </a>
+         @if($avaliacoes->count() >= 2)
+         <a href="{{ route('avaliacao.comparacao', $aluno->id) }}" class="btn btn-primary mx-1">
+            <i class="fas fa-fw fa-balance-scale"></i> Comparar Avaliações
+         </a>
+         @endif
          <a href="{{ route('avaliacao.avaliacao_grafico', $aluno->id) }}" class="btn btn-secondary">
             <i class="fas fa-fw fa-chart-bar"></i> Gráfico das Avaliações
          </a>
@@ -31,7 +36,7 @@
                <td class="align-middle">{{ $avaliacao->professor->name }}</td>
                <td class="align-middle">
                   <div class="btn-group">
-                     <a href="#" class="btn btn-success btn-sm">
+                     <a href="{{ route('avaliacao.view_pdf', $avaliacao->id) }}" class="btn btn-success btn-sm" target="_blank" title="Ver PDF desta avaliação">
                         <i class="fas fa-fw fa-eye"></i>
                      </a>
                      <!-- <a href="{{ route('avaliacao.edit', $avaliacao->id) }}" class="btn btn-warning text-white">

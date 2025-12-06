@@ -27,9 +27,7 @@
                <tr>
                   <th>Nome</th>
                   <th>Email</th>
-                  <th>Cargo</th>
                   <th>Unidade</th>
-                  <th>Plano</th>
                   <th>Status</th>
                   <th></th>
                </tr>
@@ -39,24 +37,8 @@
                <tr>
                   <td class="align-middle">{{$aluno->name}}</td>
                   <td class="align-middle">{{$aluno->email}}</td>
-                  @foreach ($aluno->roles as $role)
                   <td class="align-middle">
-                     {{$role->formatted_name}}
-                  </td>
-                  @endforeach
-                  <td class="align-middle">
-                     @forelse ($aluno->planos as $plano)
-                     {{ \App\Models\AcademiaUnidade::find($plano->pivot->academia_unidade_id)->nome ?? '-' }}<br>
-                     @empty
-                     <span class="text-muted">Nenhum plano associado</span>
-                     @endforelse
-                  </td>
-                  <td class="align-middle">
-                     @forelse ($aluno->planos as $plano)
-                     {{ $plano->name }}<br>
-                     @empty
-                     <span class="text-muted">Nenhum plano associado</span>
-                     @endforelse
+                     {{ $aluno->aluno->unidade->nome ?? '-' }}
                   </td>
                   <td class="align-middle">
                      @if($aluno->status)
@@ -112,54 +94,82 @@
             </button>
          </div>
          <div class="modal-body">
-            <form action="{{ route('aluno.store') }}" method="POST">
+            <form action="{{ route('aluno.store') }}" method="POST" enctype="multipart/form-data">
                @csrf
+
+               {{-- NOME --}}
                <div class="form-group">
-                  <label for="name">Nome</label>
+                  <label for="name">Nome Completo</label>
                   <input type="text" class="form-control" id="name" name="name" required>
                </div>
+
+               {{-- E-MAIL --}}
                <div class="form-group">
-                  <label for="email">Email</label>
+                  <label for="email">E-mail</label>
                   <input type="email" class="form-control" id="email" name="email" required>
                </div>
-               <!-- <div class="form-group">
-                  <label for="academia_unidade_id">Unidade</label>
-                  <select class="form-control" name="academia_unidade_id" id="academia_unidade_id">
+
+               {{-- CPF --}}
+               <div class="form-group">
+                  <label for="cpf">CPF</label>
+                  <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00">
+               </div>
+
+               {{-- TELEFONE --}}
+               <div class="form-group">
+                  <label for="telefone">Telefone</label>
+                  <input type="text" class="form-control" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+               </div>
+
+               {{-- SEXO + IDADE --}}
+               <div class="form-row">
+                  <div class="col">
+                     <label for="sexo">Sexo</label>
+                     <select name="sexo" id="sexo" class="form-control">
+                        <option value="">Selecione</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
+                     </select>
+                  </div>
+
+                  <div class="col">
+                     <label for="idade">Idade</label>
+                     <input type="number" class="form-control" id="idade" name="idade">
+                  </div>
+               </div>
+
+               {{-- UNIDADE --}}
+               <div class="form-group mt-3">
+                  <label for="unidade_id">Unidade</label>
+                  <select class="form-control" name="unidade_id" id="unidade_id">
                      <option value="">Selecione a Unidade</option>
                      @foreach ($unidades as $unidade)
                      <option value="{{ $unidade->id }}">{{ $unidade->nome }}</option>
                      @endforeach
                   </select>
                </div>
+
+               {{-- FOTO --}}
                <div class="form-group">
-                  <label for="plano_id">Plano</label>
-                  <select class="form-control" name="plano_id" id="plano_id" disabled>
-                     <option value="">Selecione o Plano</option>
-                     @foreach ($unidades as $unidade)
-                     <option value="{{ $unidade->id }}">{{ $unidade->nome }}</option>
-                     @endforeach
-                  </select>
+                  <label for="foto">Foto do Aluno</label>
+                  <input type="file" class="form-control-file" id="foto" name="foto">
                </div>
-               <div class="form-group">
-                  <label for="forma_pagamento">Forma de Pagamento</label>
-                  <select class="form-control" name="forma_pagamento" id="forma_pagamento">
-                     <option value="" selected disabled>Selecione a Forma de Pagamento</option>
-                     <option value="boleto">Boleto</option>
-                     <option value="cartao">Cartão</option>
-                     <option value="pix">Pix</option>
-                     <option value="dinheiro">Dinheiro</option>
-                  </select>
-               </div> -->
-               <div class="modal-footer">
-                  <button type="submit" class="btn btn-warning text-bold">Inserir Aluno</button>
+
+               {{-- OBSERVAÇÕES --}}
+               <div class="form-group mt-3">
+                  <label for="observacoes">Observações</label>
+                  <textarea name="observacoes" id="observacoes" rows="3" class="form-control"></textarea>
+               </div>
+
+               <div class="modal-footer px-0">
+                  <button type="submit" class="btn btn-warning text-bold">Salvar Aluno</button>
                </div>
             </form>
          </div>
-         <!-- /.modal-content -->
       </div>
-      <!-- /.modal-dialog -->
    </div>
 </div>
+
 
 <div class="modal fade" id="modalFilter" tabindex="-1" role="dialog" aria-labelledby="modalFilterLabel" aria-hidden="true">
    <div class="modal-dialog">
