@@ -11,12 +11,12 @@ return new class extends Migration
     */
    public function up(): void
    {
-      Schema::create('planilha_treinos', function (Blueprint $table) {
+      Schema::create('treinos', function (Blueprint $table) {
          $table->id();
-         $table->foreignId('aluno_id')->constrained('users');
-         $table->foreignId('professor_id')->constrained('users');
-         $table->foreignId('unidade_id')->constrained('academia_unidades');
-         $table->foreignId('plano_id')->nullable()->constrained('planos');
+         $table->foreignId('planilha_id')->constrained('planilha_treinos');
+         $table->string('sigla');
+         $table->string('dias_semana')->nullable();
+         $table->string('nome')->nullable();
          $table->text('observacoes')->nullable();
          $table->timestamps();
       });
@@ -27,6 +27,6 @@ return new class extends Migration
     */
    public function down(): void
    {
-      Schema::dropIfExists('planilha_treinos');
+      Schema::dropIfExists('treinos');
    }
 };

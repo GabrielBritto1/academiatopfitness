@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademiaUnidade;
 use App\Models\Planos;
 use App\Models\Role;
+use App\Models\Aluno;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,25 +18,36 @@ class AlunoController extends Controller
     */
    public function index(Request $request)
    {
+      // Carregar unidades para o modal de cadastro
       $unidades = AcademiaUnidade::all();
-      $unidades->each(function ($unidade) {
-         $unidade->planos = $unidade->planos()->get();
-      });
-      $roles = Role::all();
-      $alunosQuery = User::whereHas('roles', function ($query) {
-         $query->where('name', 'aluno');
-      })->with(['planos']);
 
+      // Query principal para listar ALUNOS (Users com role aluno)
+      $alunosQuery = User::whereHas(
+         'roles',
+         fn($q) =>
+         $q->where('name', 'aluno')
+      )
+         ->with([
+            'aluno.unidade',  // unidade vem da tabela alunos
+         ]);
+
+      // FILTRO NOME
       if ($request->filled('search')) {
-         $alunosQuery->where('name', 'like', '%' . $request->input('search') . '%');
+         $alunosQuery->where('name', 'like', "%{$request->search}%");
       }
-      if ($request->has('search')) {
-         $alunosQuery->where('status', $request->input('status'));
+
+      // FILTRO STATUS — mas o status está em Aluno, não em User
+      if ($request->filled('status')) {
+         $alunosQuery->whereHas('aluno', function ($q) use ($request) {
+            $q->where('status', $request->status);
+         });
       }
+
       $alunos = $alunosQuery->paginate(10);
 
-      return view('alunos.index', compact('alunos', 'roles', 'unidades'));
+      return view('alunos.index', compact('alunos', 'unidades'));
    }
+
 
    /**
     * Show the form for creating a new resource.
@@ -53,6 +65,13 @@ class AlunoController extends Controller
       $validated = $request->validate([
          'name' => 'required|string|max:255',
          'email' => 'required|string|email|max:255|unique:users',
+         'cpf' => 'required|string|max:11',
+         'telefone' => 'required|string|max:15',
+         'sexo' => 'required|string|max:10',
+         'idade' => 'required|integer',
+         'unidade_id' => 'nullable|exists:academia_unidades,id',
+         'observacoes' => 'nullable|string',
+         'foto' => 'nullable|image|max:2048',
       ]);
 
       $user = User::create([
@@ -61,6 +80,17 @@ class AlunoController extends Controller
          'password' => Hash::make($validated['email']),
       ]);
       $user->roles()->attach(2);
+
+      $aluno = Aluno::create([
+         'user_id' => $user->id,
+         'cpf' => $validated['cpf'],
+         'telefone' => $validated['telefone'],
+         'sexo' => $validated['sexo'],
+         'idade' => $validated['idade'],
+         'unidade_id' => $validated['unidade_id'],
+         'observacoes' => $validated['observacoes'],
+         'foto' => $nomeDaFoto ?? null,
+      ]);
 
       return redirect()->route('aluno.index')->with('success', 'Aluno inserido com sucesso!');
    }
@@ -104,8 +134,12 @@ class AlunoController extends Controller
     */
    public function show(string $id)
    {
-      $aluno = User::findOrFail($id);
-      return view('alunos.show', compact('aluno'));
+      $user = User::findOrFail($id);
+      $aluno = $user->aluno;
+      $planos = Planos::all();
+      $avaliacoes = $user->avaliacoes;
+      $planilhas = $user->planilhas()->with(['treinos.exercicios', 'professor', 'unidade', 'plano'])->get();
+      return view('alunos.show', compact('user', 'aluno', 'planos', 'avaliacoes', 'planilhas'));
    }
 
    /**
@@ -114,7 +148,8 @@ class AlunoController extends Controller
    public function edit(string $id)
    {
       $aluno = User::findOrFail($id);
-      return view('alunos.edit', compact('aluno'));
+      $unidades = AcademiaUnidade::all();
+      return view('alunos.edit', compact('aluno', 'unidades'));
    }
 
    /**

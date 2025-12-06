@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Planos;
+use App\Models\AcademiaUnidade;
+use App\Models\Avaliacao;
+use App\Models\PlanilhaTreino;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -23,6 +28,50 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        // Contagem de alunos
+        $totalAlunos = User::whereHas('roles', function ($query) {
+            $query->where('name', 'aluno');
+        })->count();
+
+        // Contagem de professores
+        $totalProfessores = User::whereHas('roles', function ($query) {
+            $query->where('name', 'professor');
+        })->count();
+
+        // Contagem de planos
+        $totalPlanos = Planos::count();
+
+        // Contagem de unidades
+        $totalUnidades = AcademiaUnidade::count();
+
+        // Contagem de avaliações
+        $totalAvaliacoes = Avaliacao::count();
+
+        // Contagem de planilhas de treino
+        $totalPlanilhas = PlanilhaTreino::where('is_padrao', false)->count();
+
+        // Últimas avaliações
+        $ultimasAvaliacoes = Avaliacao::with(['aluno', 'professor'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Últimas planilhas de treino
+        $ultimasPlanilhas = PlanilhaTreino::where('is_padrao', false)
+            ->with(['aluno', 'professor'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        return view('home', compact(
+            'totalAlunos',
+            'totalProfessores',
+            'totalPlanos',
+            'totalUnidades',
+            'totalAvaliacoes',
+            'totalPlanilhas',
+            'ultimasAvaliacoes',
+            'ultimasPlanilhas'
+        ));
     }
 }

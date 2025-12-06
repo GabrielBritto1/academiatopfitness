@@ -17,7 +17,7 @@
          @csrf
          <div class="row">
             <div class="col">
-               <label for="aluno">Aluno <button type="button" class="btn btn-success btn-sm"><i class="fas fa-plus"></i></button>
+               <label for="aluno">Aluno <button type="button" class="btn btn-success btn-sm rounded-circle"><i class="fas fa-plus"></i></button>
                </label>
                <select class="form-control" name="user_id" id="user_id">
                   <option value="" selected disabled>Selecione um Aluno</option>
@@ -57,7 +57,7 @@
                </div>
             </div>
          </div>
-         <button type="button" class="btn btn-success btn-sm my-3" id="add-unidade-plano"><i class="fas fa-plus"></i></button>
+         <button type="button" class="btn btn-success btn-sm my-3 rounded-circle" id="add-unidade-plano"><i class="fas fa-plus"></i></button>
          <div class="form-group">
             <label for="forma_pagamento">Forma de Pagamento</label>
             <select class="form-control" name="forma_pagamento" id="forma_pagamento" required>
