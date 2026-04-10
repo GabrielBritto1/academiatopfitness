@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\PaymentReminderService;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,6 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         //
+    })
+    ->withSchedule(function (Schedule $schedule) {
+        $schedule->call(function () {
+            app(PaymentReminderService::class)->sendDueSoonReminders();
+        })
+            ->name('topfitness:send-payment-reminders')
+            ->dailyAt('08:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

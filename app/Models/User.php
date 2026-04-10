@@ -82,4 +82,9 @@ class User extends Authenticatable
    {
       return $this->hasMany(PlanilhaTreino::class, 'aluno_id');
    }
+
+   public function financialTransactions()
+   {
+      return $this->hasMany(FinancialTransaction::class);
+   }
 }

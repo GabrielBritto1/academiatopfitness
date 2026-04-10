@@ -50,10 +50,10 @@
                   <td class="align-middle overflow-visible-btn " style="text-align: right">
                      <div class="btn-group">
                         @can('admin')
-                        <a class="btn btn-warning" href="{{ route('aluno.edit',$aluno->id) }}"><i class="fas fa fa-edit text-white"></i></a>
+                        <a class="btn btn-warning btn-sm" href="{{ route('aluno.edit',$aluno->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                         @endcan
-                        <a class="btn btn-success" href="{{ route('aluno.show',$aluno->id) }}"><i class="fas fa fa-eye"></i></a>
-                        <button type="button" class="btn btn-info ativar-btn" data-id="{{ $aluno->id }}">
+                        <a class="btn btn-success btn-sm" href="{{ route('aluno.show',$aluno->id) }}"><i class="fas fa fa-eye"></i></a>
+                        <button type="button" class="btn btn-info btn-sm ativar-btn" data-id="{{ $aluno->id }}">
                            <i class="fas fa-check"></i>
                         </button>
                      </div>
@@ -61,7 +61,7 @@
                      <form action="{{ route('user.destroy', $aluno->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-danger" type="submit">
+                        <button class="btn btn-danger btn-sm" type="submit">
                            <i class="fas fa fa-trash"></i>
                         </button>
                      </form>

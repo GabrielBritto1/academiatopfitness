@@ -29,7 +29,6 @@
          <table class="table table-hover text-nowrap" id="user-table">
             <thead>
                <tr>
-                  <th>ID</th>
                   <th>Nome</th>
                   <th>Email</th>
                   <th>Roles</th>
@@ -38,9 +37,7 @@
             </thead>
             <tbody id="tabela-usuarios">
                @forelse ($users as $user)
-               @if(!$user->roles->contains('name', 'admin'))
                <tr>
-                  <td class="align-middle">{{$user->id}}</td>
                   <td class="align-middle">{{$user->name}}</td>
                   <td class="align-middle">{{$user->email}}</td>
                   @foreach ($user->roles as $role)
@@ -48,24 +45,23 @@
                      {{$role->formatted_name}}
                   </td>
                   @endforeach
-                  <td class="align-middle overflow-visible-btn " style="text-align: right">
+                  <td class="align-middle overflow-visible-btn" style="text-align: right">
                      <div class="btn-group">
                         @can('admin')
-                        <a class="btn btn-warning" href="{{ route('user.edit',$user->id) }}"><i class="fas fa fa-edit text-white"></i></a>
+                        <a class="btn btn-warning btn-sm" href="{{ route('user.edit',$user->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                         @endcan
-                        <a class="btn btn-success" href="{{ route('user.show',$user->id) }}"><i class="fas fa fa-eye"></i></a>
+                        <a class="btn btn-success btn-sm" href="{{ route('user.show',$user->id) }}"><i class="fas fa fa-eye"></i></a>
                      </div>
                      @can('admin')
                      <form action="{{ route('user.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-danger" type="submit">
+                        <button class="btn btn-danger btn-sm" type="submit">
                            <i class="fas fa fa-trash"></i>
                         </button>
                      </form>
                      @endcan
                   </td>
-                  @endif
                   @empty
                   <div class="col-12">
                      <div class="alert alert-info">

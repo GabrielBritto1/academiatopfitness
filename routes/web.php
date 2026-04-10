@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AvaliacaoController;
+use App\Http\Controllers\Financeiro\FinancialCategoryController;
+use App\Http\Controllers\Financeiro\FinancialTransactionController;
 use App\Http\Controllers\Modalidade\AcademiaUnidadeController;
 use App\Http\Controllers\Modalidade\ModalidadeController;
 use App\Http\Controllers\PlanilhaTreinoController;
@@ -120,8 +122,30 @@ Route::middleware(['auth'])->group(function () {
    Route::get('/relatorio', function () {
       return view('relatorio.index');
    })->name('relatorio.index');
-   Route::get('/relatorio/relatorio_financeiro_filtro', function () {
-      return view('relatorio.relatorio_financeiro_filtro');
-   })->name('relatorio.relatorio_financeiro_filtro');
+   Route::get('/relatorio/relatorio_financeiro_filtro', [RelatorioPdfController::class, 'relatorioFinanceiroFiltro'])
+      ->name('relatorio.relatorio_financeiro_filtro');
    Route::get('/relatorio/relatorio_pdf/relatorio_financeiro', [RelatorioPdfController::class, 'relatorioFinanceiro'])->name('relatorio.relatorio_pdf.relatorio_financeiro');
+
+   // ROTAS DE FINANCEIRO
+   // Categorias Financeiras
+   Route::get('/financeiro/categorias', [FinancialCategoryController::class, 'index'])->name('financeiro.categorias.index');
+   Route::post('/financeiro/categorias', [FinancialCategoryController::class, 'store'])->name('financeiro.categorias.store');
+   Route::put('/financeiro/categorias/{id}', [FinancialCategoryController::class, 'update'])->name('financeiro.categorias.update');
+   Route::delete('/financeiro/categorias/{id}', [FinancialCategoryController::class, 'destroy'])->name('financeiro.categorias.destroy');
+
+   // Transações Financeiras (Caixa/Fluxo de Caixa)
+   Route::get('/financeiro/caixa', [FinancialTransactionController::class, 'index'])->name('financeiro.caixa.index');
+   Route::get('/financeiro/transacoes/create', [FinancialTransactionController::class, 'create'])->name('financeiro.transacoes.create');
+   Route::post('/financeiro/transacoes', [FinancialTransactionController::class, 'store'])->name('financeiro.transacoes.store');
+   Route::get('/financeiro/transacoes/{id}', [FinancialTransactionController::class, 'show'])->name('financeiro.transacoes.show');
+   Route::get('/financeiro/transacoes/{id}/edit', [FinancialTransactionController::class, 'edit'])->name('financeiro.transacoes.edit');
+   Route::put('/financeiro/transacoes/{id}', [FinancialTransactionController::class, 'update'])->name('financeiro.transacoes.update');
+   Route::delete('/financeiro/transacoes/{id}', [FinancialTransactionController::class, 'destroy'])->name('financeiro.transacoes.destroy');
+   Route::post('/financeiro/transacoes/{id}/marcar-pago', [FinancialTransactionController::class, 'markAsPaid'])->name('financeiro.transacoes.marcar-pago');
+
+   // Contas a Receber
+   Route::get('/financeiro/contas-receber', [FinancialTransactionController::class, 'contasReceber'])->name('financeiro.contas-receber.index');
+
+   // Contas a Pagar
+   Route::get('/financeiro/contas-pagar', [FinancialTransactionController::class, 'contasPagar'])->name('financeiro.contas-pagar.index');
 });

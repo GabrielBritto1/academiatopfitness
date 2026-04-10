@@ -4,12 +4,15 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademiaUnidade;
+use App\Models\FinancialCategory;
+use App\Models\FinancialTransaction;
 use App\Models\Planos;
 use App\Models\Role;
 use App\Models\Aluno;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AlunoController extends Controller
 {
@@ -18,6 +21,34 @@ class AlunoController extends Controller
     */
    public function index(Request $request)
    {
+      // Controle semi-automático: desativar alunos com última mensalidade paga há mais de 30 dias
+      $limite = now()->subDays(30)->startOfDay();
+
+      $alunosAtivos = User::whereHas('roles', function ($q) {
+         $q->where('name', 'aluno');
+      })
+         ->where('status', true)
+         ->get();
+
+      foreach ($alunosAtivos as $alunoUser) {
+         $ultimaPagamento = FinancialTransaction::where('kind', 'conta_receber')
+            ->where('user_id', $alunoUser->id)
+            ->where('status', 'pago')
+            ->orderByDesc('paid_at')
+            ->orderByDesc('created_at')
+            ->first();
+
+         if ($ultimaPagamento) {
+            $dataBase = $ultimaPagamento->paid_at ?? $ultimaPagamento->created_at;
+
+            if ($dataBase && $dataBase->lt($limite)) {
+               // Depois de 30 dias sem pagamento, desativa o aluno
+               $alunoUser->status = false;
+               $alunoUser->save();
+            }
+         }
+      }
+
       // Carregar unidades para o modal de cadastro
       $unidades = AcademiaUnidade::all();
 
@@ -83,6 +114,7 @@ class AlunoController extends Controller
 
       $aluno = Aluno::create([
          'user_id' => $user->id,
+         'registered_at' => now()->toDateString(),
          'cpf' => $validated['cpf'],
          'telefone' => $validated['telefone'],
          'sexo' => $validated['sexo'],
@@ -108,22 +140,61 @@ class AlunoController extends Controller
 
       $user = User::find($validated['user_id']);
 
-      foreach ($validated['planos'] as $index => $plano_id) {
-         $unidade_id = $validated['unidades'][$index];
-         $desconto = $validated['descontos'][$index] ?? 0;
+      DB::beginTransaction();
 
-         // Busca o plano para pegar os valores
-         $plano = Planos::find($plano_id);
-         $valor = $plano->preco;
-         $valor_total = $valor - ($valor * ($desconto / 100));
+      try {
+         // Garante que exista ao menos a categoria padrão de receita para mensalidades
+         $categoriaMensalidade = FinancialCategory::firstOrCreate(
+            ['name' => 'Mensalidade', 'type' => 'receita'],
+            ['is_active' => true]
+         );
 
-         $user->planos()->attach($plano_id, [
-            'academia_unidade_id' => $unidade_id,
-            'valor_inicial' => $valor,
-            'valor_total' => $valor_total,
-            'valor_desconto' => $desconto,
-            'forma_pagamento' => $validated['forma_pagamento'],
-         ]);
+         foreach ($validated['planos'] as $index => $plano_id) {
+            $unidade_id = $validated['unidades'][$index] ?? null;
+            $descontoPercentual = (float)($validated['descontos'][$index] ?? 0);
+
+            // Valor vindo do carrinho (JS já preenche), mas calculamos o total com desconto no backend
+            $valorInformado = (float)($validated['valores'][$index] ?? 0);
+            $valorTotal = $valorInformado - ($valorInformado * ($descontoPercentual / 100));
+
+            $plano = Planos::findOrFail($plano_id);
+
+            // Inserir no pivot (aluno_plano_unidade) e capturar o ID para referenciar no financeiro
+            $alunoPlanoUnidadeId = DB::table('aluno_plano_unidade')->insertGetId([
+               'user_id' => $user->id,
+               'academia_unidade_id' => $unidade_id,
+               'plano_id' => $plano_id,
+               'valor_inicial' => $valorInformado,
+               'valor_total' => $valorTotal,
+               'valor_desconto' => $descontoPercentual,
+               'forma_pagamento' => $validated['forma_pagamento'],
+               'created_at' => now(),
+               'updated_at' => now(),
+            ]);
+
+            // Automatização: cria conta a receber para este plano
+            FinancialTransaction::create([
+               'kind' => 'conta_receber',
+               'financial_category_id' => $categoriaMensalidade->id,
+               'academia_unidade_id' => $unidade_id,
+               'user_id' => $user->id,
+               'aluno_plano_unidade_id' => $alunoPlanoUnidadeId,
+               'description' => 'Mensalidade - ' . $plano->name,
+               'due_date' => now()->toDateString(),
+               'paid_at' => null,
+               'amount' => $valorInformado,
+               'discount' => round($valorInformado * ($descontoPercentual / 100), 2),
+               'addition' => 0,
+               'amount_paid' => null,
+               'payment_method' => $validated['forma_pagamento'],
+               'status' => 'pendente',
+            ]);
+         }
+
+         DB::commit();
+      } catch (\Throwable $e) {
+         DB::rollBack();
+         return redirect()->route('aluno.index')->with('error', 'Não foi possível finalizar o cadastro financeiro dos planos.');
       }
 
       return redirect()->route('aluno.index')->with('success', 'Planos inseridos com sucesso!');
