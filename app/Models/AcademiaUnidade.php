@@ -33,4 +33,9 @@ class AcademiaUnidade extends Model
    {
       return $this->hasMany(Aluno::class, 'unidade_id');
    }
+
+   public function financialTransactions()
+   {
+      return $this->hasMany(FinancialTransaction::class, 'academia_unidade_id');
+   }
 }

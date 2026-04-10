@@ -330,7 +330,7 @@ return [
       [
          'text' => 'Dashboard',
          'url' => 'home',
-         'icon' => 'fas fa-chart-line',
+         'icon' => 'fas fa-tachometer-alt',
       ],
       [
          'text' => 'Usuários',
@@ -368,10 +368,30 @@ return [
          'icon' => 'fas fa-dumbbell',
       ],
       [
-         'text' => 'Gestão Financeira',
-         'url' => '#',
-         'icon' => 'fas fa-hand-holding-usd',
-         'can' => 'admin',
+         'text' => 'Financeiro',
+         'icon' => 'fas fa-fw fa-coins',
+         'submenu' => [
+            [
+               'text' => 'Caixa / Fluxo de Caixa',
+               'url'  => 'financeiro/caixa',
+               'icon' => 'fas fa-fw fa-cash-register',
+            ],
+            [
+               'text' => 'Contas a Receber',
+               'url'  => 'financeiro/contas-receber',
+               'icon' => 'fas fa-fw fa-hand-holding-usd',
+            ],
+            [
+               'text' => 'Contas a Pagar',
+               'url'  => 'financeiro/contas-pagar',
+               'icon' => 'fas fa-fw fa-money-bill-wave',
+            ],
+            [
+               'text' => 'Categorias',
+               'url'  => 'financeiro/categorias',
+               'icon' => 'fas fa-fw fa-tags',
+            ],
+         ],
       ],
       [
          'text' => 'Relatórios',
