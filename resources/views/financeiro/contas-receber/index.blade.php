@@ -16,6 +16,9 @@
          <a href="{{ route('financeiro.caixa.index') }}" class="btn btn-sm btn-info">
             <i class="fas fa-fw fa-cash-register"></i> Caixa
          </a>
+         <a href="{{ route('financeiro.categorias.index', ['type' => 'receita']) }}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-fw fa-tags"></i> Categorias
+         </a>
       </div>
    </div>
    <div class="card-body">
@@ -103,7 +106,7 @@
       </div>
 
       <div class="mt-3">
-         {{ $transactions->links() }}
+         {{ $transactions->links('pagination::bootstrap-5') }}
       </div>
    </div>
 </div>

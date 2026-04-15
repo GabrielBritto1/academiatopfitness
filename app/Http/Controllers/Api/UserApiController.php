@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -34,7 +35,8 @@ class UserApiController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'roles' => 'required|exists:roles,id',
+            'roles' => 'required|array|min:1',
+            'roles.*' => 'exists:roles,id',
         ]);
 
         $user = User::create([
@@ -42,7 +44,7 @@ class UserApiController extends Controller
             'email' => $request->input('email'),
             'password' => bcrypt($request->input('password')),
         ]);
-        $user->roles()->attach($request->input('roles'));
+        $user->syncRoles(Role::whereIn('id', $request->input('roles'))->get());
 
         return response()->json($user);
     }
@@ -52,7 +54,7 @@ class UserApiController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::with('roles', 'roles.abilities')->findOrFail($id);
+        $user = User::with(['roles.permissions', 'permissions'])->findOrFail($id);
         return response()->json($user);
     }
 

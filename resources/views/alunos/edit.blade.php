@@ -8,6 +8,17 @@
 
 @section('content')
 
+@if($errors->any())
+<div class="alert alert-danger">
+   <strong>Não foi possível salvar o aluno.</strong>
+   <ul class="mb-0 mt-2 pl-3">
+      @foreach($errors->all() as $error)
+      <li>{{ $error }}</li>
+      @endforeach
+   </ul>
+</div>
+@endif
+
 <form method="POST" action="{{ route('aluno.update', $aluno->id) }}" enctype="multipart/form-data">
    @csrf
    @method('PUT')
@@ -19,19 +30,28 @@
          {{-- NOME --}}
          <div class="form-group">
             <label for="name">Nome</label>
-            <input type="text" name="name" class="form-control" value="{{ $aluno->name }}" required>
+            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $aluno->name) }}" required>
+            @error('name')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
          </div>
 
          {{-- CPF --}}
          <div class="form-group">
             <label for="cpf">CPF</label>
-            <input type="text" name="cpf" class="form-control" value="{{ $aluno->cpf }}" placeholder="000.000.000-00">
+            <input type="text" name="cpf" class="form-control @error('cpf') is-invalid @enderror" value="{{ old('cpf', $aluno->aluno?->cpf) }}" placeholder="000.000.000-00">
+            @error('cpf')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
          </div>
 
          {{-- EMAIL --}}
          <div class="form-group">
             <label for="email">E-mail</label>
-            <input type="email" name="email" class="form-control" value="{{ $aluno->email }}" required>
+            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $aluno->email) }}" required>
+            @error('email')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
          </div>
 
          <div class="row">
@@ -39,15 +59,21 @@
             <div class="col-md-4">
                <div class="form-group">
                   <label for="telefone">Telefone</label>
-                  <input type="text" name="telefone" class="form-control" value="{{ $aluno->telefone }}">
+                  <input type="text" name="telefone" class="form-control @error('telefone') is-invalid @enderror" value="{{ old('telefone', $aluno->aluno?->telefone) }}">
+                  @error('telefone')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
             </div>
 
-            {{-- IDADE --}}
+            {{-- DATA DE NASCIMENTO --}}
             <div class="col-md-4">
                <div class="form-group">
-                  <label for="idade">Idade</label>
-                  <input type="number" name="idade" class="form-control" value="{{ $aluno->idade }}">
+                  <label for="data_nascimento">Data de Nascimento</label>
+                  <input type="date" name="data_nascimento" class="form-control @error('data_nascimento') is-invalid @enderror" value="{{ old('data_nascimento', $aluno->aluno?->data_nascimento?->format('Y-m-d')) }}">
+                  @error('data_nascimento')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
             </div>
 
@@ -55,11 +81,14 @@
             <div class="col-md-4">
                <div class="form-group">
                   <label for="sexo">Sexo</label>
-                  <select name="sexo" class="form-control">
+                  <select name="sexo" class="form-control @error('sexo') is-invalid @enderror">
                      <option value="">Selecione</option>
-                     <option value="Masculino" {{ $aluno->sexo === 'Masculino' ? 'selected' : '' }}>Masculino</option>
-                     <option value="Feminino" {{ $aluno->sexo === 'Feminino' ? 'selected' : '' }}>Feminino</option>
+                     <option value="Masculino" {{ old('sexo', $aluno->aluno?->sexo) === 'Masculino' ? 'selected' : '' }}>Masculino</option>
+                     <option value="Feminino" {{ old('sexo', $aluno->aluno?->sexo) === 'Feminino' ? 'selected' : '' }}>Feminino</option>
                   </select>
+                  @error('sexo')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
             </div>
          </div>
@@ -67,40 +96,52 @@
          {{-- UNIDADE --}}
          <div class="form-group">
             <label for="unidade_id">Unidade</label>
-            <select name="unidade_id" class="form-control">
+            <select name="unidade_id" class="form-control @error('unidade_id') is-invalid @enderror">
                <option value="">Selecione</option>
                @foreach($unidades as $unidade)
                <option value="{{ $unidade->id }}"
-                  {{ $aluno->unidade_id == $unidade->id ? 'selected' : '' }}>
-                  {{ $unidade->name }}
+                  {{ old('unidade_id', $aluno->aluno?->unidade_id) == $unidade->id ? 'selected' : '' }}>
+                  {{ $unidade->nome }}
                </option>
                @endforeach
             </select>
+            @error('unidade_id')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
          </div>
 
          {{-- STATUS --}}
          <div class="form-group">
             <label for="status">Status</label>
-            <select name="status" class="form-control">
-               <option value="ativo" {{ $aluno->status === 'ativo' ? 'selected' : '' }}>Ativo</option>
-               <option value="inativo" {{ $aluno->status === 'inativo' ? 'selected' : '' }}>Inativo</option>
+            <select name="status" class="form-control @error('status') is-invalid @enderror">
+               <option value="1" {{ (string) old('status', (int) $aluno->status) === '1' ? 'selected' : '' }}>Ativo</option>
+               <option value="0" {{ (string) old('status', (int) $aluno->status) === '0' ? 'selected' : '' }}>Inativo</option>
             </select>
+            @error('status')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
          </div>
 
          {{-- OBSERVAÇÕES --}}
          <div class="form-group">
             <label for="observacoes">Observações</label>
-            <textarea name="observacoes" class="form-control" rows="3">{{ $aluno->observacoes }}</textarea>
+            <textarea name="observacoes" class="form-control @error('observacoes') is-invalid @enderror" rows="3">{{ old('observacoes', $aluno->aluno?->observacoes) }}</textarea>
+            @error('observacoes')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
          </div>
 
          {{-- FOTO DO ALUNO --}}
          <div class="form-group">
             <label for="foto">Foto do Aluno</label>
-            <input type="file" name="foto" class="form-control-file">
+            <input type="file" name="foto" class="form-control-file @error('foto') is-invalid @enderror" accept="image/*">
+            @error('foto')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
 
-            @if($aluno->foto)
+            @if($aluno->aluno?->foto)
             <div class="mt-2">
-               <img src="{{ asset('storage/alunos/' . $aluno->foto) }}"
+               <img src="{{ $aluno->aluno->foto_url }}"
                   class="img-thumbnail"
                   style="width: 120px; height:120px; object-fit: cover;">
             </div>

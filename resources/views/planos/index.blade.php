@@ -7,7 +7,7 @@
 @stop
 
 @section('content')
-@can('admin')
+@can('plans.manage')
 <div class="card">
    <div class="card-header">
       <div class="card-tools">
@@ -47,7 +47,7 @@
                         </div>
                         <div class="card-footer text-center">
                            <!-- <button class="btn btn-warning" onclick="alert('Plano {{ $plano->name }} Selecionado')">Selecionar Plano</button> -->
-                           @can('admin')
+                           @can('plans.manage')
                            <div class="btn-group">
                               <a class="btn btn-sm bg-warning" href="{{ route('planos.edit', $plano->id) }}">
                                  <i class="fas fa-edit"></i>

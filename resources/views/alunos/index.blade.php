@@ -7,12 +7,23 @@
 <div class="col-12">
    <div class="card">
       <div class="card-header">
+         @if($errors->any() && old('_student_form') === 'create')
+         <div class="alert alert-danger mb-3">
+            <strong>Não foi possível salvar o aluno.</strong>
+            <ul class="mb-0 mt-2 pl-3">
+               @foreach($errors->all() as $error)
+               <li>{{ $error }}</li>
+               @endforeach
+            </ul>
+         </div>
+         @endif
+
          <div class="card-tools">
             <div class="btn-group" role="group" aria-label="...">
                <a href="#" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#modalFilter" title="Filtrar usuário">
                   <i class="fas fa-fw fa-search"></i>
                </a>
-               @can('admin')
+               @can('students.manage')
                <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo usuário">
                   <i class="fas fa-fw fa-plus"></i>
                </a>
@@ -49,15 +60,20 @@
                   </td>
                   <td class="align-middle overflow-visible-btn " style="text-align: right">
                      <div class="btn-group">
-                        @can('admin')
+                        @can('students.manage')
                         <a class="btn btn-warning btn-sm" href="{{ route('aluno.edit',$aluno->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                         @endcan
                         <a class="btn btn-success btn-sm" href="{{ route('aluno.show',$aluno->id) }}"><i class="fas fa fa-eye"></i></a>
+                        @if(($paymentTransactions[$aluno->id] ?? null))
+                        <a class="btn btn-primary btn-sm" href="{{ route('financeiro.transacoes.edit', $paymentTransactions[$aluno->id]->id) }}" title="Editar pagamento">
+                           <i class="fas fa-money-bill-wave"></i>
+                        </a>
+                        @endif
                         <button type="button" class="btn btn-info btn-sm ativar-btn" data-id="{{ $aluno->id }}">
                            <i class="fas fa-check"></i>
                         </button>
                      </div>
-                     @can('admin')
+                     @can('students.manage')
                      <form action="{{ route('user.destroy', $aluno->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
                         @csrf
                         @method('DELETE')
@@ -96,69 +112,97 @@
          <div class="modal-body">
             <form action="{{ route('aluno.store') }}" method="POST" enctype="multipart/form-data">
                @csrf
+               <input type="hidden" name="_student_form" value="create">
 
                {{-- NOME --}}
                <div class="form-group">
                   <label for="name">Nome Completo</label>
-                  <input type="text" class="form-control" id="name" name="name" required>
+                  <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                  @error('name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
 
                {{-- E-MAIL --}}
                <div class="form-group">
                   <label for="email">E-mail</label>
-                  <input type="email" class="form-control" id="email" name="email" required>
+                  <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required>
+                  @error('email')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
 
                {{-- CPF --}}
                <div class="form-group">
                   <label for="cpf">CPF</label>
-                  <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00">
+                  <input type="text" class="form-control @error('cpf') is-invalid @enderror" id="cpf" name="cpf" value="{{ old('cpf') }}" placeholder="000.000.000-00">
+                  @error('cpf')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
 
                {{-- TELEFONE --}}
                <div class="form-group">
                   <label for="telefone">Telefone</label>
-                  <input type="text" class="form-control" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+                  <input type="text" class="form-control @error('telefone') is-invalid @enderror" id="telefone" name="telefone" value="{{ old('telefone') }}" placeholder="(00) 00000-0000">
+                  @error('telefone')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
 
-               {{-- SEXO + IDADE --}}
+               {{-- SEXO + DATA DE NASCIMENTO --}}
                <div class="form-row">
                   <div class="col">
                      <label for="sexo">Sexo</label>
-                     <select name="sexo" id="sexo" class="form-control">
+                     <select name="sexo" id="sexo" class="form-control @error('sexo') is-invalid @enderror">
                         <option value="">Selecione</option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Feminino">Feminino</option>
+                        <option value="Masculino" {{ old('sexo') === 'Masculino' ? 'selected' : '' }}>Masculino</option>
+                        <option value="Feminino" {{ old('sexo') === 'Feminino' ? 'selected' : '' }}>Feminino</option>
                      </select>
+                     @error('sexo')
+                     <div class="invalid-feedback">{{ $message }}</div>
+                     @enderror
                   </div>
 
                   <div class="col">
-                     <label for="idade">Idade</label>
-                     <input type="number" class="form-control" id="idade" name="idade">
+                     <label for="data_nascimento">Data de Nascimento</label>
+                     <input type="date" class="form-control @error('data_nascimento') is-invalid @enderror" id="data_nascimento" name="data_nascimento" value="{{ old('data_nascimento') }}">
+                     @error('data_nascimento')
+                     <div class="invalid-feedback">{{ $message }}</div>
+                     @enderror
                   </div>
                </div>
 
                {{-- UNIDADE --}}
                <div class="form-group mt-3">
                   <label for="unidade_id">Unidade</label>
-                  <select class="form-control" name="unidade_id" id="unidade_id">
+                  <select class="form-control @error('unidade_id') is-invalid @enderror" name="unidade_id" id="unidade_id">
                      <option value="">Selecione a Unidade</option>
                      @foreach ($unidades as $unidade)
-                     <option value="{{ $unidade->id }}">{{ $unidade->nome }}</option>
+                     <option value="{{ $unidade->id }}" {{ (string) old('unidade_id') === (string) $unidade->id ? 'selected' : '' }}>{{ $unidade->nome }}</option>
                      @endforeach
                   </select>
+                  @error('unidade_id')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
 
                {{-- FOTO --}}
                <div class="form-group">
                   <label for="foto">Foto do Aluno</label>
-                  <input type="file" class="form-control-file" id="foto" name="foto">
+                  <input type="file" class="form-control-file @error('foto') is-invalid @enderror" id="foto" name="foto" accept="image/*">
+                  @error('foto')
+                  <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
                </div>
 
                {{-- OBSERVAÇÕES --}}
                <div class="form-group mt-3">
                   <label for="observacoes">Observações</label>
-                  <textarea name="observacoes" id="observacoes" rows="3" class="form-control"></textarea>
+                  <textarea name="observacoes" id="observacoes" rows="3" class="form-control @error('observacoes') is-invalid @enderror">{{ old('observacoes') }}</textarea>
+                  @error('observacoes')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
 
                <div class="modal-footer px-0">
@@ -213,6 +257,10 @@
 <script src="/js/User/index.js"></script>
 
 <script>
+   @if($errors->any() && old('_student_form') === 'create')
+   $('#modalDefault').modal('show');
+   @endif
+
    $('.ativar-btn').on('click', function() {
       let id = $(this).data('id');
       Swal.fire({
@@ -254,26 +302,31 @@
 <script>
    // SCRIPT PARA CARREGAR OS PLANOS BASEADO NA UNIDADE SELECIONADA
    const unidades = @json($unidades);
-   document.getElementById('academia_unidade_id').addEventListener('change', function() {
+   const academiaUnidadeField = document.getElementById('academia_unidade_id');
+   const planoField = document.getElementById('plano_id');
+
+   if (academiaUnidadeField && planoField) {
+      academiaUnidadeField.addEventListener('change', function() {
       const unidadeId = this.value;
-      const PlanoSelect = document.getElementById('plano_id');
-      PlanoSelect.innerHTML = '<option value="">Selecione o Plano</option>';
+      planoField.innerHTML = '<option value="">Selecione o Plano</option>';
 
       if (!unidadeId) {
-         PlanoSelect.disabled = true;
+         planoField.disabled = true;
          return;
       }
+
       // Busca a unidade selecionada
       const unidade = unidades.find(u => u.id == unidadeId);
       if (unidade && unidade.planos.length > 0) {
          unidade.planos.forEach(function(plano) {
-            PlanoSelect.innerHTML += `<option value="${plano.id}">${plano.name}</option>`;
+            planoField.innerHTML += `<option value="${plano.id}">${plano.name}</option>`;
          });
-         PlanoSelect.disabled = false;
+         planoField.disabled = false;
       } else {
-         PlanoSelect.disabled = true;
+         planoField.disabled = true;
       }
-   });
+      });
+   }
 </script>
 
 @if(session('success'))

@@ -22,7 +22,7 @@ class TreinoController extends Controller
    public function create(Request $request)
    {
       $planilha_id = $request->get('planilha_id');
-      $planilha = $planilha_id ? PlanilhaTreino::with('aluno')->findOrFail($planilha_id) : null;
+      $planilha = $planilha_id ? PlanilhaTreino::with(['aluno', 'professor'])->findOrFail($planilha_id) : null;
       
       return view('treino.create', compact('planilha'));
    }
@@ -64,7 +64,7 @@ class TreinoController extends Controller
     */
    public function edit(string $id)
    {
-      $treino = Treino::with('planilha')->findOrFail($id);
+      $treino = Treino::with('planilha.aluno')->findOrFail($id);
       
       return view('treino.edit', compact('treino'));
    }

@@ -22,9 +22,10 @@
       </div>
 
       <div class="form-group">
-         <select name="roles" id="roles">
+         <label for="roles">Roles</label>
+         <select name="roles[]" id="roles" class="form-control" multiple required>
             @foreach ($roles as $role)
-            <option value="{{$role->id}}">{{$role->formatted_name}}</option>
+            <option value="{{$role->id}}" {{ $userEdit->roles->contains('id', $role->id) ? 'selected' : '' }}>{{$role->formatted_name}}</option>
             @endforeach
          </select>
       </div>

@@ -2,18 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
    protected $fillable = [
       'name',
+      'guard_name',
    ];
-
-   public function abilities()
-   {
-      return $this->belongsToMany(Ability::class);
-   }
 
    public function getFormattedNameAttribute()
    {
@@ -21,7 +18,7 @@ class Role extends Model
          'admin' => 'Administrador',
          'aluno' => 'Aluno',
          'professor' => 'Professor',
-         default => ucfirst($this->name),
+         default => (string) Str::of($this->name)->replace(['.', '_', '-'], ' ')->title(),
       };
    }
 }

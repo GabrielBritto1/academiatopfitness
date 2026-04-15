@@ -20,6 +20,8 @@ return new class extends Migration
          $table->float('valor_total')->default(0);
          $table->float('valor_desconto')->default(0);
          $table->string('forma_pagamento')->nullable();
+         $table->string('periodicidade')->default('mensal');
+         $table->date('data_vencimento')->nullable();
          $table->timestamps();
       });
    }

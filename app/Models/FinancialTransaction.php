@@ -43,6 +43,10 @@ class FinancialTransaction extends Model
    {
       return $this->belongsTo(User::class);
    }
-}
 
+   public function contrato(): BelongsTo
+   {
+      return $this->belongsTo(AlunoPlanoUnidade::class, 'aluno_plano_unidade_id');
+   }
+}
 

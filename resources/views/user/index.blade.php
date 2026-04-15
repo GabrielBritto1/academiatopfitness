@@ -16,7 +16,7 @@
                <a href="#" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#modalFilter" title="Filtrar usuário">
                   <i class="fas fa-fw fa-search"></i>
                </a>
-               @can('admin')
+               @can('users.manage')
                <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo usuário">
                   <i class="fas fa-fw fa-plus"></i>
                </a>
@@ -40,19 +40,17 @@
                <tr>
                   <td class="align-middle">{{$user->name}}</td>
                   <td class="align-middle">{{$user->email}}</td>
-                  @foreach ($user->roles as $role)
                   <td class="align-middle">
-                     {{$role->formatted_name}}
+                     {{ $user->roles->pluck('formatted_name')->implode(', ') ?: '—' }}
                   </td>
-                  @endforeach
                   <td class="align-middle overflow-visible-btn" style="text-align: right">
                      <div class="btn-group">
-                        @can('admin')
+                        @can('users.manage')
                         <a class="btn btn-warning btn-sm" href="{{ route('user.edit',$user->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                         @endcan
                         <a class="btn btn-success btn-sm" href="{{ route('user.show',$user->id) }}"><i class="fas fa fa-eye"></i></a>
                      </div>
-                     @can('admin')
+                     @can('users.manage')
                      <form action="{{ route('user.destroy', $user->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
                         @csrf
                         @method('DELETE')
@@ -101,8 +99,7 @@
                </div>
                <div class="form-group">
                   <label for="roles">Roles</label>
-                  <select name="roles" class="form-control">
-                     <option value="">Selecione uma role</option>
+                  <select name="roles[]" class="form-control" multiple required>
                      @foreach ($roles as $role)
                      <option value="{{$role->id}}">{{$role->formatted_name}}</option>
                      @endforeach

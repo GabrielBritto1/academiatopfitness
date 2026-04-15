@@ -12,13 +12,18 @@
          @csrf
 
          @if($treino)
+         @php
+            $planilhaDescricao = $treino->planilha->is_padrao
+               ? 'Padrão ' . ($treino->planilha->nome ?: 'sem nome')
+               : ($treino->planilha->aluno?->name ?: 'Aluno não vinculado');
+         @endphp
          <input type="hidden" name="treino_id" value="{{ $treino->id }}">
          <div class="alert alert-info">
             <strong>Treino:</strong> {{ $treino->sigla }}
             @if($treino->nome)
             - {{ $treino->nome }}
             @endif
-            (Planilha: {{ $treino->planilha->aluno->name }})
+            (Planilha: {{ $planilhaDescricao }})
          </div>
          @else
          <div class="form-group">
@@ -26,8 +31,13 @@
             <select name="treino_id" id="treino_id" class="form-control" required>
                <option value="">Selecione o treino</option>
                @foreach(\App\Models\Treino::with('planilha.aluno')->get() as $t)
+               @php
+                  $planilhaDescricao = $t->planilha->is_padrao
+                     ? 'Padrão: ' . ($t->planilha->nome ?: 'sem nome')
+                     : ($t->planilha->aluno?->name ?: 'Aluno não vinculado');
+               @endphp
                <option value="{{ $t->id }}" {{ old('treino_id') == $t->id ? 'selected' : '' }}>
-                  {{ $t->sigla }} - {{ $t->planilha->aluno->name }}
+                  {{ $t->sigla }} - {{ $planilhaDescricao }}
                </option>
                @endforeach
             </select>
@@ -113,4 +123,3 @@
    </div>
 </div>
 @stop
-

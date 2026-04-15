@@ -29,14 +29,10 @@ class HomeController extends Controller
     public function index()
     {
         // Contagem de alunos
-        $totalAlunos = User::whereHas('roles', function ($query) {
-            $query->where('name', 'aluno');
-        })->count();
+        $totalAlunos = User::role('aluno')->count();
 
         // Contagem de professores
-        $totalProfessores = User::whereHas('roles', function ($query) {
-            $query->where('name', 'professor');
-        })->count();
+        $totalProfessores = User::role('professor')->count();
 
         // Contagem de planos
         $totalPlanos = Planos::count();

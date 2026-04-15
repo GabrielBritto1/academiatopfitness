@@ -3,10 +3,30 @@
 @section('title', $user->name)
 
 @section('content_header')
-<h1 class="text-bold">{{ $user->name }}</h1>
+<div class="d-flex justify-content-between align-items-center">
+   <h1 class="text-bold mb-0">{{ $user->name }}</h1>
+   @if($paymentTransaction)
+   <a href="{{ route('financeiro.transacoes.edit', $paymentTransaction->id) }}" class="btn btn-primary">
+      <i class="fas fa-money-bill-wave"></i> Editar Pagamento
+   </a>
+   @endif
+</div>
 @stop
 
 @section('content')
+
+@php
+$openWhatsappTab = session('open_whatsapp_tab') || $errors->has('whatsapp_instance_id') || $errors->has('message');
+$openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_message') || $errors->has('birthday_whatsapp_message') || $errors->has('birthday_whatsapp_instance_id');
+@endphp
+
+@if(session('success'))
+<div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger">{{ session('error') }}</div>
+@endif
 
 <div class="card shadow-sm">
 
@@ -17,13 +37,13 @@
          {{-- FOTO DO ALUNO --}}
          <div class="col-md-3 text-center mb-4">
             <img
-               src="{{ $aluno->foto ? asset('storage/'.$aluno->foto) : 'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png' }}"
+               src="{{ $aluno->foto_url }}"
                class="img-thumbnail rounded-circle shadow-sm"
                style="width:150px; height:150px; object-fit:cover;"
                alt="Foto do aluno">
 
             <div class="mt-2 text-muted">
-               <small>{{ $user->name }}</small>
+               <small>{{ $user->name ?? '-' }}</small>
             </div>
          </div>
 
@@ -80,7 +100,7 @@
 
       <ul class="nav nav-tabs">
          <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#ficha">📄 Ficha Técnica</a>
+            <a class="nav-link {{ ($openWhatsappTab || $openBirthdayTab) ? '' : 'active' }}" data-toggle="tab" href="#ficha">📄 Ficha Técnica</a>
          </li>
 
          <li class="nav-item">
@@ -94,18 +114,30 @@
          <li class="nav-item">
             <a class="nav-link" data-toggle="tab" href="#treino">📝 Ficha de Treino</a>
          </li>
+
+         @if($billingAlert)
+         <li class="nav-item">
+            <a class="nav-link {{ $openWhatsappTab ? 'active' : '' }}" data-toggle="tab" href="#whatsapp-cobranca" id="whatsapp-cobranca-tab">💬 Aviso de Cobrança</a>
+         </li>
+         @endif
+
+         @if($birthdayGreeting)
+         <li class="nav-item">
+            <a class="nav-link {{ $openBirthdayTab ? 'active' : '' }}" data-toggle="tab" href="#birthday-greetings" id="birthday-greetings-tab">🎉 Parabéns</a>
+         </li>
+         @endif
       </ul>
 
       <div class="tab-content p-3">
 
          {{-- TAB FICHA --}}
-         <div id="ficha" class="tab-pane fade show active">
+         <div id="ficha" class="tab-pane fade {{ ($openWhatsappTab || $openBirthdayTab) ? '' : 'show active' }}">
             <h4 class="mb-3">Informações do Aluno</h4>
 
             <div class="row">
                <div class="col-md-4 mb-3">
-                  <strong>Idade:</strong><br>
-                  {{ $aluno->idade ?? '—' }}
+                  <strong>Data de Nascimento:</strong><br>
+                  {{ $aluno->data_nascimento?->format('d/m/Y') ?? '—' }}
                </div>
 
                <div class="col-md-4 mb-3">
@@ -156,7 +188,14 @@
             <ul class="list-group">
                @foreach($planos as $plano)
                <li class="list-group-item">
-                  <strong>{{ $plano->name }}</strong>
+                  <strong>{{ $plano->name }}</strong><br>
+                  <small class="text-muted">
+                     Periodicidade: {{ ucfirst($plano->pivot->periodicidade ?? 'mensal') }}
+                     |
+                     Vencimento: {{ isset($plano->pivot->data_vencimento) && $plano->pivot->data_vencimento ? \Carbon\Carbon::parse($plano->pivot->data_vencimento)->format('d/m/Y') : '—' }}
+                     |
+                     Forma de pagamento: {{ ucfirst($plano->pivot->forma_pagamento ?? 'nao informada') }}
+                  </small>
                </li>
                @endforeach
             </ul>
@@ -228,6 +267,171 @@
             <p class="text-muted">Nenhuma planilha de treino criada.</p>
             @endif
          </div>
+
+         @if($billingAlert)
+         <div id="whatsapp-cobranca" class="tab-pane fade {{ $openWhatsappTab ? 'show active' : '' }}">
+            <div class="alert alert-{{ $billingAlert['is_overdue'] ? 'danger' : 'warning' }}">
+               <div class="d-flex justify-content-between align-items-center flex-wrap">
+                  <div>
+                     <strong>{{ $billingAlert['title'] }}</strong><br>
+                     {{ $billingAlert['summary'] }}
+                  </div>
+                  <span class="badge {{ $billingAlert['status_badge_class'] }}">{{ $billingAlert['status_label'] }}</span>
+               </div>
+            </div>
+
+            <div class="card card-outline card-{{ $billingAlert['is_overdue'] ? 'danger' : 'warning' }}">
+               <div class="card-header">
+                  <h3 class="card-title">Enviar mensagem de cobrança</h3>
+               </div>
+               <form method="POST" action="{{ route('aluno.whatsapp.billing-alert.send', $user->id) }}">
+                  @csrf
+                  <div class="card-body">
+                     <div class="row">
+                        <div class="col-md-4 mb-3">
+                           <strong>Parcela:</strong><br>
+                           {{ $billingAlert['transaction']->description }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                           <strong>Vencimento:</strong><br>
+                           {{ $billingAlert['transaction']->due_date?->format('d/m/Y') ?? '—' }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                           <strong>Telefone do aluno:</strong><br>
+                           {{ $aluno->telefone ?? 'Não cadastrado' }}
+                        </div>
+                     </div>
+
+                     @if($whatsappInstances->isEmpty())
+                     <div class="alert alert-info mb-0">
+                        Nenhuma instância ativa do WhatsApp foi cadastrada ainda.
+                        <a href="{{ route('whatsapp.instances.index') }}">Cadastrar agora</a>.
+                     </div>
+                     @else
+                     <div class="form-group">
+                        <label for="whatsapp_instance_id">Instância do WhatsApp</label>
+                        <select name="whatsapp_instance_id" id="whatsapp_instance_id" class="form-control @error('whatsapp_instance_id') is-invalid @enderror" required>
+                           <option value="">Selecione</option>
+                           @foreach($whatsappInstances as $instance)
+                           <option value="{{ $instance->id }}" {{ (string) old('whatsapp_instance_id', $whatsappInstances->firstWhere('is_default', true)?->id) === (string) $instance->id ? 'selected' : '' }}>
+                              {{ $instance->name }}{{ $instance->is_default ? ' (Padrão)' : '' }}
+                           </option>
+                           @endforeach
+                        </select>
+                        @error('whatsapp_instance_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                     </div>
+
+                     <div class="form-group">
+                        <label for="message">Mensagem</label>
+                        <textarea name="message" id="message" rows="6" class="form-control @error('message') is-invalid @enderror" required>{{ old('message', $billingAlert['message']) }}</textarea>
+                        @error('message')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                     </div>
+                     @endif
+                  </div>
+                  @if($whatsappInstances->isNotEmpty())
+                  <div class="card-footer">
+                     <button type="submit" class="btn btn-success">
+                        <i class="fab fa-whatsapp"></i> Enviar aviso
+                     </button>
+                  </div>
+                  @endif
+               </form>
+            </div>
+         </div>
+         @endif
+
+         @if($birthdayGreeting)
+         <div id="birthday-greetings" class="tab-pane fade {{ $openBirthdayTab ? 'show active' : '' }}">
+            <div class="alert alert-success">
+               <strong>Hoje é o aniversário de {{ $user->name }} 🎂</strong><br>
+               Você pode enviar parabéns por e-mail ou WhatsApp a partir desta aba.
+            </div>
+
+            <div class="row">
+               <div class="col-lg-6">
+                  <div class="card card-outline card-success">
+                     <div class="card-header">
+                        <h3 class="card-title">Parabéns por E-mail</h3>
+                     </div>
+                     <form method="POST" action="{{ route('aluno.birthday.email.send', $user->id) }}">
+                        @csrf
+                        <div class="card-body">
+                           <div class="form-group">
+                              <label for="birthday_email_message">Mensagem</label>
+                              <textarea name="birthday_email_message" id="birthday_email_message" rows="6" class="form-control @error('birthday_email_message') is-invalid @enderror" required>{{ old('birthday_email_message', $birthdayGreeting['message']) }}</textarea>
+                              @error('birthday_email_message')
+                              <div class="invalid-feedback">{{ $message }}</div>
+                              @enderror
+                           </div>
+                           <div class="text-muted">
+                              Destino: {{ $user->email ?? 'E-mail não cadastrado' }}
+                           </div>
+                        </div>
+                        <div class="card-footer">
+                           <button type="submit" class="btn btn-success">Enviar por e-mail</button>
+                        </div>
+                     </form>
+                  </div>
+               </div>
+
+               <div class="col-lg-6">
+                  <div class="card card-outline card-success">
+                     <div class="card-header">
+                        <h3 class="card-title">Parabéns por WhatsApp</h3>
+                     </div>
+                     <form method="POST" action="{{ route('aluno.birthday.whatsapp.send', $user->id) }}">
+                        @csrf
+                        <div class="card-body">
+                           @if($whatsappInstances->isEmpty())
+                           <div class="alert alert-info mb-0">
+                              Nenhuma instância ativa do WhatsApp foi cadastrada ainda.
+                              <a href="{{ route('whatsapp.instances.index') }}">Cadastrar agora</a>.
+                           </div>
+                           @else
+                           <div class="form-group">
+                              <label for="birthday_whatsapp_instance_id">Instância do WhatsApp</label>
+                              <select name="birthday_whatsapp_instance_id" id="birthday_whatsapp_instance_id" class="form-control @error('birthday_whatsapp_instance_id') is-invalid @enderror" required>
+                                 <option value="">Selecione</option>
+                                 @foreach($whatsappInstances as $instance)
+                                 <option value="{{ $instance->id }}" {{ (string) old('birthday_whatsapp_instance_id', $whatsappInstances->firstWhere('is_default', true)?->id) === (string) $instance->id ? 'selected' : '' }}>
+                                    {{ $instance->name }}{{ $instance->is_default ? ' (Padrão)' : '' }}
+                                 </option>
+                                 @endforeach
+                              </select>
+                              @error('birthday_whatsapp_instance_id')
+                              <div class="invalid-feedback">{{ $message }}</div>
+                              @enderror
+                           </div>
+
+                           <div class="form-group">
+                              <label for="birthday_whatsapp_message">Mensagem</label>
+                              <textarea name="birthday_whatsapp_message" id="birthday_whatsapp_message" rows="6" class="form-control @error('birthday_whatsapp_message') is-invalid @enderror" required>{{ old('birthday_whatsapp_message', $birthdayGreeting['message']) }}</textarea>
+                              @error('birthday_whatsapp_message')
+                              <div class="invalid-feedback">{{ $message }}</div>
+                              @enderror
+                           </div>
+                           <div class="text-muted">
+                              Destino: {{ $aluno->telefone ?? 'Telefone não cadastrado' }}
+                           </div>
+                           @endif
+                        </div>
+                        @if($whatsappInstances->isNotEmpty())
+                        <div class="card-footer">
+                           <button type="submit" class="btn btn-success">
+                              <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+                           </button>
+                        </div>
+                        @endif
+                     </form>
+                  </div>
+               </div>
+            </div>
+         </div>
+         @endif
       </div>
    </div>
 </div>

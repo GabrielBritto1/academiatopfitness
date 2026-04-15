@@ -20,20 +20,17 @@ class ProfessorController extends Controller
       $unidades->each(function ($unidade) {
          $unidade->planos = $unidade->planos()->get();
       });
-      $roles = Role::all();
-      $professoresQuery = User::whereHas('roles', function ($query) {
-         $query->where('name', 'professor');
-      })->with(['planos']);
+      $professoresQuery = User::role('professor')->with(['planos', 'roles']);
 
       if ($request->filled('search')) {
          $professoresQuery->where('name', 'like', '%' . $request->input('search') . '%');
       }
-      if ($request->has('search')) {
+      if ($request->filled('status')) {
          $professoresQuery->where('status', $request->input('status'));
       }
       $professores = $professoresQuery->paginate(10);
 
-      return view('professores.index', compact('professores', 'roles', 'unidades'));
+      return view('professores.index', compact('professores', 'unidades'));
    }
 
    /**
@@ -59,7 +56,9 @@ class ProfessorController extends Controller
          'email' => $validated['email'],
          'password' => Hash::make($validated['email']),
       ]);
-      $user->roles()->attach(3);
+
+      Role::findOrCreate('professor', config('auth.defaults.guard', 'web'));
+      $user->assignRole('professor');
 
       return redirect()->route('professor.index')->with('success', 'Professor inserido com sucesso!');
    }

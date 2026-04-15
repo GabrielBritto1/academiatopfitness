@@ -7,12 +7,23 @@
 <div class="col-12">
    <div class="card">
       <div class="card-header">
+         @if($errors->any() && old('_professor_form') === 'create')
+         <div class="alert alert-danger mb-3">
+            <strong>Não foi possível salvar o professor.</strong>
+            <ul class="mb-0 mt-2 pl-3">
+               @foreach($errors->all() as $error)
+               <li>{{ $error }}</li>
+               @endforeach
+            </ul>
+         </div>
+         @endif
+
          <div class="card-tools">
             <div class="btn-group" role="group" aria-label="...">
                <a href="#" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#modalFilter" title="Filtrar usuário">
                   <i class="fas fa-fw fa-search"></i>
                </a>
-               @can('admin')
+               @can('professors.manage')
                <a href="#" class="btn btn-sm btn-success" data-toggle="modal" data-target="#modalDefault" title="Adicionar novo usuário">
                   <i class="fas fa-fw fa-plus"></i>
                </a>
@@ -39,11 +50,9 @@
                <tr>
                   <td class="align-middle">{{$professor->name}}</td>
                   <td class="align-middle">{{$professor->email}}</td>
-                  @foreach ($professor->roles as $role)
                   <td class="align-middle">
-                     {{$role->formatted_name}}
+                     {{ $professor->roles->pluck('formatted_name')->implode(', ') ?: '—' }}
                   </td>
-                  @endforeach
                   <td class="align-middle">
                      @forelse ($professor->planos as $plano)
                      {{ \App\Models\AcademiaUnidade::find($plano->pivot->academia_unidade_id)->nome ?? '-' }}<br>
@@ -67,15 +76,14 @@
                   </td>
                   <td class="align-middle overflow-visible-btn " style="text-align: right">
                      <div class="btn-group">
-                        @can('admin')
-                        <a class="btn btn-warning btn-sm" href="{{ route('aluno.edit',$professor->id) }}"><i class="fas fa fa-edit text-white"></i></a>
+                        @can('users.manage')
+                        <a class="btn btn-warning btn-sm" href="{{ route('user.edit',$professor->id) }}"><i class="fas fa fa-edit text-white"></i></a>
                         @endcan
-                        <a class="btn btn-success btn-sm" href="{{ route('aluno.show',$professor->id) }}"><i class="fas fa fa-eye"></i></a>
-                        <button type="button" class="btn btn-info btn-sm ativar-btn" data-id="{{ $professor->id }}">
-                           <i class="fas fa-check"></i>
-                        </button>
+                        @can('users.manage')
+                        <a class="btn btn-success btn-sm" href="{{ route('user.show',$professor->id) }}"><i class="fas fa fa-eye"></i></a>
+                        @endcan
                      </div>
-                     @can('admin')
+                     @can('users.manage')
                      <form action="{{ route('user.destroy', $professor->id) }}" method="POST" style="display: inline;" onsubmit="confirmarExclusao(event, this)">
                         @csrf
                         @method('DELETE')
@@ -114,13 +122,20 @@
          <div class="modal-body">
             <form action="{{ route('professor.store') }}" method="POST">
                @csrf
+               <input type="hidden" name="_professor_form" value="create">
                <div class="form-group">
                   <label for="name">Nome</label>
-                  <input type="text" class="form-control" id="name" name="name" required>
+                  <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                  @error('name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
                <div class="form-group">
                   <label for="email">Email</label>
-                  <input type="email" class="form-control" id="email" name="email" required>
+                  <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required>
+                  @error('email')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
                </div>
                <div class="modal-footer">
                   <button type="submit" class="btn btn-warning text-bold">Inserir Professor</button>
@@ -137,13 +152,13 @@
    <div class="modal-dialog">
       <div class="modal-content">
          <div class="modal-header">
-            <h4 class="modal-title">Filtrar Aluno</h4>
+            <h4 class="modal-title">Filtrar Professor</h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                <span aria-hidden="true">×</span>
             </button>
          </div>
          <div class="modal-body">
-            <form method="GET" action="{{ route('aluno.index') }}">
+            <form method="GET" action="{{ route('professor.index') }}">
                <div class="form-group">
                   <label for="search">Nome</label>
                   <input type="text" name="search" class="form-control" placeholder="Buscar..." value="{{ request('search') }}">
@@ -158,7 +173,7 @@
                </div>
                <button type="submit" class="btn btn-warning text-bold">Filtrar</button>
                <button type="submit" class="btn btn-secondary text-bold">
-                  <a class="text-white" href="{{ route('aluno.index') }}">
+                  <a class="text-white" href="{{ route('professor.index') }}">
                      Limpar Filtros
                   </a>
                </button>
@@ -175,67 +190,36 @@
 <script src="/js/User/index.js"></script>
 
 <script>
-   $('.ativar-btn').on('click', function() {
-      let id = $(this).data('id');
-      Swal.fire({
-         title: 'Processando...',
-         text: 'Aguarde o status do aluno ser mudado.',
-         allowOutsideClick: false,
-         allowEscapeKey: false,
-         allowEnterKey: false,
-         didOpen: () => {
-            Swal.showLoading();
-         }
-      });
-      $.ajax({
-         url: `/aluno/${id}/toggleStatus`,
-         method: 'POST',
-         data: {
-            _token: '{{ csrf_token() }}'
-         },
-         success: function() {
-            Swal.fire({
-               title: 'Ativado!',
-               text: 'Status do aluno mudado com sucesso.',
-               icon: 'success'
-            }).then(() => {
-               location.reload();
-            })
-         },
-         error: function() {
-            Swal.fire({
-               title: 'Erro!',
-               text: 'Houve um problema ao mudar o status do aluno.',
-               icon: 'error'
-            })
-         }
-      });
-   });
-</script>
+   @if($errors->any() && old('_professor_form') === 'create')
+   $('#modalDefault').modal('show');
+   @endif
 
-<script>
    // SCRIPT PARA CARREGAR OS PLANOS BASEADO NA UNIDADE SELECIONADA
    const unidades = @json($unidades);
-   document.getElementById('academia_unidade_id').addEventListener('change', function() {
+   const academiaUnidadeField = document.getElementById('academia_unidade_id');
+   const planoField = document.getElementById('plano_id');
+
+   if (academiaUnidadeField && planoField) {
+      academiaUnidadeField.addEventListener('change', function() {
       const unidadeId = this.value;
-      const PlanoSelect = document.getElementById('plano_id');
-      PlanoSelect.innerHTML = '<option value="">Selecione o Plano</option>';
+      planoField.innerHTML = '<option value="">Selecione o Plano</option>';
 
       if (!unidadeId) {
-         PlanoSelect.disabled = true;
+         planoField.disabled = true;
          return;
       }
       // Busca a unidade selecionada
       const unidade = unidades.find(u => u.id == unidadeId);
       if (unidade && unidade.planos.length > 0) {
          unidade.planos.forEach(function(plano) {
-            PlanoSelect.innerHTML += `<option value="${plano.id}">${plano.name}</option>`;
+            planoField.innerHTML += `<option value="${plano.id}">${plano.name}</option>`;
          });
-         PlanoSelect.disabled = false;
+         planoField.disabled = false;
       } else {
-         PlanoSelect.disabled = true;
+         planoField.disabled = true;
       }
-   });
+      });
+   }
 </script>
 
 @if(session('success'))

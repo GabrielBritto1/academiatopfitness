@@ -263,7 +263,7 @@ return [
    'register_url' => 'register',
    'password_reset_url' => 'password/reset',
    'password_email_url' => 'password/email',
-   'profile_url' => false,
+   'profile_url' => 'perfil',
    'disable_darkmode_routes' => false,
 
    /*
@@ -309,7 +309,28 @@ return [
       //     'type' => 'fullscreen-widget',
       //     'topnav_right' => true,
       // ],
+      [
+         'type' => 'navbar-notification',
+         'id' => 'finance-due-notifications',
+         'icon' => 'far fa-bell',
+         'label' => 0,
+         'label_color' => 'warning',
+         'url' => 'financeiro/contas-receber',
+         'topnav_right' => true,
+         'dropdown_mode' => true,
+         'dropdown_flabel' => 'Ver contas a receber',
+         'update_cfg' => [
+            'route' => 'financeiro.notificacoes.vencimentos',
+            'period' => 60,
+         ],
+      ],
 
+      [
+         'text' => 'Mudar senha',
+         'url' => 'perfil/senha',
+         'icon' => 'fas fa-key',
+         'topnav_user' => true,
+      ],
       // Sidebar items:
       // [
       //     'type' => 'sidebar-menu-search',
@@ -336,21 +357,31 @@ return [
          'text' => 'Usuários',
          'url' => 'users',
          'icon' => 'fas fa-fw fa-users',
+         'can' => 'users.manage',
+      ],
+      [
+         'text' => 'Acessos e Permissões',
+         'url' => 'access-control',
+         'icon' => 'fas fa-user-shield',
+         'can' => 'roles.manage',
       ],
       [
          'text' => 'Professores',
          'url' => 'professores',
          'icon' => 'fas fa-chalkboard-teacher',
+         'can' => 'professors.manage',
       ],
       [
          'text' => 'Alunos',
          'url' => 'alunos',
          'icon' => 'fas fa-user-friends',
+         'can' => 'students.manage',
       ],
       [
          'text' => 'Avaliação',
          'url' => 'avaliacao',
          'icon' => 'fas fa-clipboard-list',
+         'can' => 'avaliacao.manage',
       ],
       [
          'text' => 'Unidades',
@@ -361,15 +392,18 @@ return [
          'text' => 'Planos',
          'url' => 'planos',
          'icon' => 'fas fa-file-invoice-dollar',
+         'can' => 'plans.manage',
       ],
       [
          'text' => 'Planilha de Treino',
          'url' => 'planilha-treino',
          'icon' => 'fas fa-dumbbell',
+         'can' => 'trainings.manage',
       ],
       [
          'text' => 'Financeiro',
          'icon' => 'fas fa-fw fa-coins',
+         'can' => 'financeiro.manage',
          'submenu' => [
             [
                'text' => 'Caixa / Fluxo de Caixa',
@@ -391,40 +425,31 @@ return [
                'url'  => 'financeiro/categorias',
                'icon' => 'fas fa-fw fa-tags',
             ],
+            [
+               'text' => 'WhatsApp / Evolution',
+               'url'  => 'whatsapp/instancias',
+               'icon' => 'fab fa-fw fa-whatsapp',
+               'can' => 'whatsapp.manage',
+            ],
          ],
       ],
       [
          'text' => 'Relatórios',
          'url' => 'relatorio',
          'icon' => 'fas fa-file-pdf',
+         'can' => 'reports.manage',
       ],
-      // ['header' => 'account_settings'],
-      // [
-      //     'text' => 'profile',
-      //     'url' => 'admin/settings',
-      //     'icon' => 'fas fa-fw fa-user',
-      // ],
-      // [
-      //     'text' => 'change_password',
-      //     'url' => 'admin/settings',
-      //     'icon' => 'fas fa-fw fa-lock',
-      // ],
-      // ['header' => 'labels'],
-      // [
-      //     'text' => 'important',
-      //     'icon_color' => 'red',
-      //     'url' => '#',
-      // ],
-      // [
-      //     'text' => 'warning',
-      //     'icon_color' => 'yellow',
-      //     'url' => '#',
-      // ],
-      // [
-      //     'text' => 'information',
-      //     'icon_color' => 'cyan',
-      //     'url' => '#',
-      // ],
+      ['header' => 'account_settings'],
+      [
+         'text' => 'profile',
+         'url' => 'perfil',
+         'icon' => 'fas fa-fw fa-user',
+      ],
+      [
+         'text' => 'change_password',
+         'url' => 'perfil/senha',
+         'icon' => 'fas fa-fw fa-lock',
+      ],
    ],
 
    /*

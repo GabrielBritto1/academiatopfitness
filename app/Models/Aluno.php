@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Aluno extends Model
 {
@@ -15,7 +16,7 @@ class Aluno extends Model
       'cpf',
       'telefone',
       'sexo',
-      'idade',
+      'data_nascimento',
       'observacoes',
       'foto',
       'unidade_id',
@@ -26,6 +27,7 @@ class Aluno extends Model
       return [
          'registered_at' => 'date',
          'last_payment_reminder_sent_for' => 'date',
+         'data_nascimento' => 'date',
          'created_at' => 'datetime',
          'updated_at' => 'datetime',
       ];
@@ -49,7 +51,7 @@ class Aluno extends Model
          PlanilhaTreino::class,
          'aluno_id',    // FK em planilhas_treino
          'planilha_id', // FK em treinos
-         'id',          // id em alunos
+         'user_id',     // user_id em alunos
          'id'           // id em planilhas_treino
       );
    }
@@ -96,5 +98,28 @@ class Aluno extends Model
       }
 
       return !$this->last_payment_reminder_sent_for?->isSameDay($dueDate);
+   }
+
+   public function getFotoUrlAttribute(): string
+   {
+      if ($this->foto) {
+         return Storage::disk('public')->url($this->foto);
+      }
+
+      return 'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png';
+   }
+
+   public function isBirthdayToday(?CarbonInterface $referenceDate = null): bool
+   {
+      if (! $this->data_nascimento) {
+         return false;
+      }
+
+      $referenceDate = $referenceDate
+         ? Carbon::instance($referenceDate)->startOfDay()
+         : now()->startOfDay();
+
+      return $this->data_nascimento->day === $referenceDate->day
+         && $this->data_nascimento->month === $referenceDate->month;
    }
 }

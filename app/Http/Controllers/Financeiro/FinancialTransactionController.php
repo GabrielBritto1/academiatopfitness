@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Financeiro;
 
 use App\Http\Controllers\Controller;
+use App\Models\AlunoPlanoUnidade;
 use App\Models\AcademiaUnidade;
 use App\Models\FinancialCategory;
 use App\Models\FinancialTransaction;
@@ -48,7 +49,7 @@ class FinancialTransactionController extends Controller
       $receitas = FinancialTransaction::where('kind', 'conta_receber')
          ->where('status', 'pago')
          ->get();
-      
+
       $despesas = FinancialTransaction::where('kind', 'conta_pagar')
          ->where('status', 'pago')
          ->get();
@@ -56,7 +57,7 @@ class FinancialTransactionController extends Controller
       $totalReceitas = $receitas->sum(function ($transaction) {
          return $transaction->amount_paid ?? ($transaction->amount - $transaction->discount + $transaction->addition);
       });
-      
+
       $totalDespesas = $despesas->sum(function ($transaction) {
          return $transaction->amount_paid ?? ($transaction->amount - $transaction->discount + $transaction->addition);
       });
@@ -72,14 +73,14 @@ class FinancialTransactionController extends Controller
    public function create(Request $request)
    {
       $kind = $request->get('kind', 'conta_receber'); // conta_receber ou conta_pagar
-      
+
       $categories = FinancialCategory::where('type', $kind === 'conta_receber' ? 'receita' : 'despesa')
          ->where('is_active', true)
          ->orderBy('name')
          ->get();
-      
+
       $unidades = AcademiaUnidade::all();
-      $alunos = User::whereHas('roles', fn($q) => $q->where('name', 'aluno'))->get();
+      $alunos = User::role('aluno')->get();
 
       return view('financeiro.transacoes.create', compact('kind', 'categories', 'unidades', 'alunos'));
    }
@@ -105,10 +106,12 @@ class FinancialTransactionController extends Controller
          'status' => 'required|in:pendente,pago,vencido,cancelado',
       ]);
 
-      FinancialTransaction::create($validated);
+      $transaction = FinancialTransaction::create($validated);
+      $this->activateStudentWhenPaymentIsSettled($transaction);
+      $this->createNextRecurringChargeIfNeeded($transaction->fresh('contrato.plano'));
 
-      $route = $validated['kind'] === 'conta_receber' 
-         ? 'financeiro.contas-receber.index' 
+      $route = $validated['kind'] === 'conta_receber'
+         ? 'financeiro.contas-receber.index'
          : 'financeiro.contas-pagar.index';
 
       return redirect()->route($route)->with('success', 'Transação criada com sucesso!');
@@ -129,14 +132,14 @@ class FinancialTransactionController extends Controller
    public function edit(string $id)
    {
       $transaction = FinancialTransaction::findOrFail($id);
-      
+
       $categories = FinancialCategory::where('type', $transaction->kind === 'conta_receber' ? 'receita' : 'despesa')
          ->where('is_active', true)
          ->orderBy('name')
          ->get();
-      
+
       $unidades = AcademiaUnidade::all();
-      $alunos = User::whereHas('roles', fn($q) => $q->where('name', 'aluno'))->get();
+      $alunos = User::role('aluno')->get();
 
       return view('financeiro.transacoes.edit', compact('transaction', 'categories', 'unidades', 'alunos'));
    }
@@ -165,9 +168,12 @@ class FinancialTransactionController extends Controller
       ]);
 
       $transaction->update($validated);
+      $updatedTransaction = $transaction->fresh('contrato.plano');
+      $this->activateStudentWhenPaymentIsSettled($updatedTransaction);
+      $this->createNextRecurringChargeIfNeeded($updatedTransaction);
 
-      $route = $validated['kind'] === 'conta_receber' 
-         ? 'financeiro.contas-receber.index' 
+      $route = $validated['kind'] === 'conta_receber'
+         ? 'financeiro.contas-receber.index'
          : 'financeiro.contas-pagar.index';
 
       return redirect()->route($route)->with('success', 'Transação atualizada com sucesso!');
@@ -182,8 +188,8 @@ class FinancialTransactionController extends Controller
       $kind = $transaction->kind;
       $transaction->delete();
 
-      $route = $kind === 'conta_receber' 
-         ? 'financeiro.contas-receber.index' 
+      $route = $kind === 'conta_receber'
+         ? 'financeiro.contas-receber.index'
          : 'financeiro.contas-pagar.index';
 
       return redirect()->route($route)->with('success', 'Transação deletada com sucesso!');
@@ -208,6 +214,9 @@ class FinancialTransactionController extends Controller
          'amount_paid' => $validated['amount_paid'] ?? ($transaction->amount - $transaction->discount + $transaction->addition),
          'payment_method' => $validated['payment_method'] ?? $transaction->payment_method,
       ]);
+      $updatedTransaction = $transaction->fresh('contrato.plano');
+      $this->activateStudentWhenPaymentIsSettled($updatedTransaction);
+      $this->createNextRecurringChargeIfNeeded($updatedTransaction);
 
       return redirect()->back()->with('success', 'Transação marcada como paga!');
    }
@@ -218,6 +227,7 @@ class FinancialTransactionController extends Controller
    public function contasReceber(Request $request)
    {
       $query = FinancialTransaction::where('kind', 'conta_receber')
+         ->orderBy('id', 'desc')
          ->with(['category', 'unidade', 'user']);
 
       if ($request->filled('status')) {
@@ -254,5 +264,87 @@ class FinancialTransactionController extends Controller
       $unidades = AcademiaUnidade::all();
 
       return view('financeiro.contas-pagar.index', compact('transactions', 'unidades'));
+   }
+
+   private function activateStudentWhenPaymentIsSettled(FinancialTransaction $transaction): void
+   {
+      if (
+         $transaction->kind !== 'conta_receber'
+         || $transaction->status !== 'pago'
+         || ! $transaction->user_id
+      ) {
+         return;
+      }
+
+      $user = $transaction->user()->first();
+
+      if (! $user || ! $user->hasRole('aluno') || $user->status) {
+         return;
+      }
+
+      $user->update([
+         'status' => true,
+      ]);
+   }
+
+   private function createNextRecurringChargeIfNeeded(FinancialTransaction $transaction): void
+   {
+      if (
+         $transaction->kind !== 'conta_receber'
+         || $transaction->status !== 'pago'
+         || ! $transaction->aluno_plano_unidade_id
+      ) {
+         return;
+      }
+
+      /** @var AlunoPlanoUnidade|null $contrato */
+      $contrato = $transaction->contrato;
+
+      if (! $contrato) {
+         return;
+      }
+
+      $baseDueDate = $transaction->due_date
+         ? $transaction->due_date->copy()
+         : $contrato->dueDateAnchor();
+
+      $nextDueDate = $contrato->nextDueDateFrom($baseDueDate);
+
+      $alreadyExists = FinancialTransaction::where('kind', 'conta_receber')
+         ->where('aluno_plano_unidade_id', $contrato->id)
+         ->whereDate('due_date', $nextDueDate->toDateString())
+         ->exists();
+
+      if ($alreadyExists) {
+         return;
+      }
+
+      FinancialTransaction::create([
+         'kind' => 'conta_receber',
+         'financial_category_id' => $transaction->financial_category_id,
+         'academia_unidade_id' => $contrato->academia_unidade_id,
+         'user_id' => $contrato->user_id,
+         'aluno_plano_unidade_id' => $contrato->id,
+         'description' => $this->buildRecurringChargeDescription($contrato),
+         'due_date' => $nextDueDate->toDateString(),
+         'amount' => $contrato->valor_inicial,
+         'discount' => $contrato->monetaryDiscount(),
+         'addition' => 0,
+         'amount_paid' => null,
+         'payment_method' => $contrato->forma_pagamento,
+         'status' => 'pendente',
+      ]);
+   }
+
+   private function buildRecurringChargeDescription(AlunoPlanoUnidade $contrato): string
+   {
+      $prefixo = match ($contrato->periodicidade) {
+         AlunoPlanoUnidade::PERIODICIDADE_DIARIA => 'Diaria',
+         AlunoPlanoUnidade::PERIODICIDADE_SEMESTRAL => 'Semestralidade',
+         AlunoPlanoUnidade::PERIODICIDADE_ANUAL => 'Anuidade',
+         default => 'Mensalidade',
+      };
+
+      return $prefixo . ' - ' . ($contrato->plano?->name ?? 'Plano');
    }
 }
