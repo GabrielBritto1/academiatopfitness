@@ -9,15 +9,6 @@
 
     <p>Seja bem-vindo(a) à Academia Top Fitness.</p>
 
-    <p>Seu cadastro foi realizado com o e-mail <strong>{{ $studentEmail }}</strong>.</p>
-
-    <p>Para acessar o sistema, utilize a tela de login. Se precisar definir ou redefinir sua senha, use a opção de recuperação:</p>
-
-    <p>
-        <a href="{{ url('login') }}">Acessar login</a><br>
-        <a href="{{ url('password/reset') }}">Recuperar / criar senha</a>
-    </p>
-
     <p>Qualquer dúvida, fale com a academia.</p>
 
     <p>Academia Top Fitness</p>
