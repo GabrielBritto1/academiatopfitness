@@ -18,6 +18,16 @@
         <input type="email" name="email" class="form-control" value="{{ $userShow->email }}" required>
     </div>
 
+    <div class="form-group">
+        <label>Roles</label>
+        <input type="text" class="form-control" value="{{ $userShow->roles->pluck('formatted_name')->implode(', ') ?: '—' }}" readonly>
+    </div>
+
+    <div class="form-group">
+        <label>Permissões</label>
+        <textarea class="form-control" rows="4" readonly>{{ $userShow->getAllPermissions()->pluck('name')->implode(', ') ?: '—' }}</textarea>
+    </div>
+
     <a href="{{ route('user.index') }}" class="btn btn-secondary">Voltar</a>
 </div>
 @stop

@@ -59,6 +59,9 @@
          <a href="{{ route('financeiro.contas-pagar.index') }}" class="btn btn-sm btn-warning">
             <i class="fas fa-fw fa-list"></i> Contas a Pagar
          </a>
+         <a href="{{ route('financeiro.categorias.index') }}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-fw fa-tags"></i> Categorias
+         </a>
       </div>
    </div>
    <div class="card-body">
@@ -115,7 +118,7 @@
             <tbody>
                @forelse($transactions as $transaction)
                <tr>
-                  <td>{{ $transaction->created_at->format('d/m/Y') }}</td>
+                  <td>{{ $transaction->updated_at->format('d/m/Y') }}</td>
                   <td>
                      @if($transaction->kind === 'conta_receber')
                      <span class="badge badge-success">Receita</span>
@@ -135,25 +138,25 @@
                   </td>
                   <td>
                      @if($transaction->kind === 'conta_receber')
-                        @if($transaction->status === 'pago')
-                        <span class="badge badge-success">Recebido</span>
-                        @elseif($transaction->status === 'vencido')
-                        <span class="badge badge-danger">A Receber (Vencido)</span>
-                        @elseif($transaction->status === 'cancelado')
-                        <span class="badge badge-secondary">Cancelado</span>
-                        @else
-                        <span class="badge badge-warning">A Receber</span>
-                        @endif
+                     @if($transaction->status === 'pago')
+                     <span class="badge badge-success">Recebido</span>
+                     @elseif($transaction->status === 'vencido')
+                     <span class="badge badge-danger">A Receber (Vencido)</span>
+                     @elseif($transaction->status === 'cancelado')
+                     <span class="badge badge-secondary">Cancelado</span>
                      @else
-                        @if($transaction->status === 'pago')
-                        <span class="badge badge-success">Pago</span>
-                        @elseif($transaction->status === 'vencido')
-                        <span class="badge badge-danger">Vencido</span>
-                        @elseif($transaction->status === 'cancelado')
-                        <span class="badge badge-secondary">Cancelado</span>
-                        @else
-                        <span class="badge badge-warning">Pendente</span>
-                        @endif
+                     <span class="badge badge-warning">A Receber</span>
+                     @endif
+                     @else
+                     @if($transaction->status === 'pago')
+                     <span class="badge badge-success">Pago</span>
+                     @elseif($transaction->status === 'vencido')
+                     <span class="badge badge-danger">Vencido</span>
+                     @elseif($transaction->status === 'cancelado')
+                     <span class="badge badge-secondary">Cancelado</span>
+                     @else
+                     <span class="badge badge-warning">Pendente</span>
+                     @endif
                      @endif
                   </td>
                   <td>

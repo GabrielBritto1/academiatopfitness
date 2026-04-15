@@ -68,7 +68,7 @@ class TreinoExercicioController extends Controller
     */
    public function edit(string $id)
    {
-      $exercicio = TreinoExercicio::with('treino')->findOrFail($id);
+      $exercicio = TreinoExercicio::with('treino.planilha.aluno')->findOrFail($id);
       
       return view('treino-exercicio.edit', compact('exercicio'));
    }

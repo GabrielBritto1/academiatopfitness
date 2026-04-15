@@ -21,7 +21,7 @@ return new class extends Migration
          $table->string('cpf')->nullable()->unique();
          $table->string('telefone')->nullable();
          $table->string('sexo')->nullable();
-         $table->integer('idade')->nullable();
+         $table->date('data_nascimento')->nullable();
          $table->text('observacoes')->nullable();
          $table->string('foto')->nullable();
 

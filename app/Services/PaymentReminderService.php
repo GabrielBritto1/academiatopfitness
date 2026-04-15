@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Mail\PaymentReminderEmail;
+use App\Models\FinancialTransaction;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -17,9 +18,9 @@ class PaymentReminderService
             : now()->startOfDay();
 
         $students = User::query()
+            ->role('aluno')
             ->where('status', true)
             ->whereNotNull('email')
-            ->whereHas('roles', fn($query) => $query->where('name', 'aluno'))
             ->with(['aluno.unidade'])
             ->get();
 
@@ -37,12 +38,30 @@ class PaymentReminderService
                 continue;
             }
 
-            if (!$aluno->shouldReceivePaymentReminderOn($referenceDate)) {
+            $nextPendingCharge = FinancialTransaction::query()
+                ->where('kind', 'conta_receber')
+                ->where('user_id', $student->id)
+                ->where('status', 'pendente')
+                ->whereNotNull('due_date')
+                ->orderBy('due_date')
+                ->first();
+
+            if (!$nextPendingCharge) {
                 $skipped++;
                 continue;
             }
 
-            $dueDate = $aluno->nextBillingDate($referenceDate);
+            $dueDate = $nextPendingCharge->due_date->copy()->startOfDay();
+
+            if (!$dueDate->isSameDay($referenceDate->copy()->addDays(7))) {
+                $skipped++;
+                continue;
+            }
+
+            if ($aluno->last_payment_reminder_sent_for?->isSameDay($dueDate)) {
+                $skipped++;
+                continue;
+            }
 
             Mail::to($student->email)->send(new PaymentReminderEmail(
                 studentName: $student->name,

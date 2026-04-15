@@ -33,13 +33,11 @@ class PlanilhaTreinoController extends Controller
    {
       $aluno_id = $request->get('aluno_id');
       $aluno = $aluno_id ? User::findOrFail($aluno_id) : null;
-      $professores = User::whereHas('roles', function ($query) {
-         $query->where('name', 'professor');
-      })->get();
+      $professores = User::role('professor')->get();
       $unidades = AcademiaUnidade::all();
       $planos = Planos::all();
       $planilhasPadrao = PlanilhaTreino::where('is_padrao', true)
-         ->with(['treinos.exercicios'])
+         ->with(['professor', 'unidade', 'treinos.exercicios'])
          ->get();
       
       return view('planilha-treino.create', compact('aluno', 'professores', 'unidades', 'planos', 'planilhasPadrao'));
@@ -55,20 +53,27 @@ class PlanilhaTreinoController extends Controller
          return $this->duplicarPlanilhaPadrao($request);
       }
 
-      // Validação para criar nova planilha
+      $isPadrao = $request->boolean('is_padrao');
+
       $validated = $request->validate([
          'is_padrao' => 'nullable|boolean',
-         'nome' => 'nullable|string|max:255',
-         'aluno_id' => 'required_if:is_padrao,0|nullable|exists:users,id',
+         'nome' => ($isPadrao ? 'required' : 'nullable') . '|string|max:255',
+         'aluno_id' => ($isPadrao ? 'nullable' : 'required') . '|exists:users,id',
          'professor_id' => 'required|exists:users,id',
          'unidade_id' => 'required|exists:academia_unidades,id',
          'plano_id' => 'nullable|exists:planos,id',
          'observacoes' => 'nullable|string',
       ]);
 
+      $validated['is_padrao'] = $isPadrao;
+
+      if ($isPadrao) {
+         $validated['aluno_id'] = null;
+      }
+
       $planilha = PlanilhaTreino::create($validated);
 
-      if ($validated['is_padrao'] ?? false) {
+      if ($isPadrao) {
          return redirect()->route('planilha-treino.index')
             ->with('success', 'Planilha padrão criada com sucesso!');
       }
@@ -145,12 +150,10 @@ class PlanilhaTreinoController extends Controller
    public function edit(string $id)
    {
       $planilha = PlanilhaTreino::findOrFail($id);
-      $professores = User::whereHas('roles', function ($query) {
-         $query->where('name', 'professor');
-      })->get();
+      $professores = User::role('professor')->get();
       $unidades = AcademiaUnidade::all();
       $planos = Planos::all();
-      $alunos = $planilha->is_padrao ? null : User::whereHas('roles', fn($q) => $q->where('name', 'aluno'))->get();
+      $alunos = $planilha->is_padrao ? null : User::role('aluno')->get();
       return view('planilha-treino.edit', compact('planilha', 'professores', 'unidades', 'planos', 'alunos'));
    }
 

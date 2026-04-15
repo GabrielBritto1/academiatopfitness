@@ -169,9 +169,7 @@ class PlanosController extends Controller
    public function carrinho()
    {
       $planos = Planos::all();
-      $alunos = User::whereHas('roles', function ($query) {
-         $query->where('name', 'aluno');
-      })->get();
+      $alunos = User::role('aluno')->get();
       $unidades = AcademiaUnidade::with('planos')->get();
 
       return view('carrinhodeplanos.index', compact('planos', 'alunos', 'unidades'));

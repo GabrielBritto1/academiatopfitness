@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\PaymentReminderEmail;
 use App\Models\Aluno;
+use App\Models\FinancialTransaction;
 use App\Models\Role;
 use App\Models\User;
 use Carbon\Carbon;
@@ -20,8 +21,8 @@ class PaymentReminderCommandTest extends TestCase
         Mail::fake();
         Carbon::setTestNow('2026-04-10 08:00:00');
 
-        $student = $this->createAlunoUser('alice@example.com', 'Alice', '2026-03-17');
-        $this->createAlunoUser('bruno@example.com', 'Bruno', '2026-03-18');
+        $student = $this->createAlunoUser('alice@example.com', 'Alice', '2026-04-17');
+        $this->createAlunoUser('bruno@example.com', 'Bruno', '2026-04-18');
 
         $this->artisan('topfitness:send-payment-reminders')
             ->expectsOutputToContain('1 email(s) enviado(s)')
@@ -50,7 +51,7 @@ class PaymentReminderCommandTest extends TestCase
         $student = $this->createAlunoUser(
             'carla@example.com',
             'Carla',
-            '2026-03-17',
+            '2026-04-17',
             '2026-04-17'
         );
 
@@ -66,10 +67,10 @@ class PaymentReminderCommandTest extends TestCase
     private function createAlunoUser(
         string $email,
         string $name,
-        string $registeredAt,
+        string $dueDate,
         ?string $lastReminderSentFor = null
     ): User {
-        $role = Role::firstOrCreate(['name' => 'aluno']);
+        Role::findOrCreate('aluno', 'web');
 
         $user = User::factory()->create([
             'name' => $name,
@@ -77,12 +78,23 @@ class PaymentReminderCommandTest extends TestCase
             'status' => true,
         ]);
 
-        $user->roles()->attach($role->id);
+        $user->assignRole('aluno');
 
         Aluno::create([
             'user_id' => $user->id,
-            'registered_at' => $registeredAt,
+            'registered_at' => now()->toDateString(),
             'last_payment_reminder_sent_for' => $lastReminderSentFor,
+        ]);
+
+        FinancialTransaction::create([
+            'kind' => 'conta_receber',
+            'user_id' => $user->id,
+            'description' => 'Mensalidade - Plano Teste',
+            'due_date' => $dueDate,
+            'amount' => 100,
+            'discount' => 0,
+            'addition' => 0,
+            'status' => 'pendente',
         ]);
 
         return $user;

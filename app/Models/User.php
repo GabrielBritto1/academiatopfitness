@@ -3,13 +3,15 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-   use HasFactory, Notifiable;
+   use HasFactory, Notifiable, HasRoles;
 
    /**
     * The attributes that are mass assignable.
@@ -20,7 +22,10 @@ class User extends Authenticatable
       'name',
       'email',
       'password',
+      'status',
    ];
+
+   protected string $guard_name = 'web';
 
    /**
     * The attributes that should be hidden for serialization.
@@ -42,17 +47,8 @@ class User extends Authenticatable
       return [
          'email_verified_at' => 'datetime',
          'password' => 'hashed',
+         'status' => 'boolean',
       ];
-   }
-
-   public function roles()
-   {
-      return $this->belongsToMany(Role::class);
-   }
-
-   public function abilities()
-   {
-      return $this->roles->map->abilities->flatten()->pluck('name');
    }
 
    public function aluno()
@@ -69,8 +65,15 @@ class User extends Authenticatable
             'valor_total',
             'valor_desconto',
             'forma_pagamento',
+            'periodicidade',
+            'data_vencimento',
          ])
          ->withTimestamps();
+   }
+
+   public function planosContratados()
+   {
+      return $this->hasMany(AlunoPlanoUnidade::class);
    }
 
    public function avaliacoes()
@@ -86,5 +89,10 @@ class User extends Authenticatable
    public function financialTransactions()
    {
       return $this->hasMany(FinancialTransaction::class);
+   }
+
+   public function sendPasswordResetNotification($token): void
+   {
+      $this->notify(new ResetPasswordNotification($token));
    }
 }

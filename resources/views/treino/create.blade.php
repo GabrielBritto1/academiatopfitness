@@ -12,9 +12,14 @@
          @csrf
 
          @if($planilha)
+         @php
+            $planilhaDescricao = $planilha->is_padrao
+               ? 'Padrão ' . ($planilha->nome ?: 'sem nome')
+               : ($planilha->aluno?->name ? 'Aluno ' . $planilha->aluno->name : 'Aluno não vinculado');
+         @endphp
          <input type="hidden" name="planilha_id" value="{{ $planilha->id }}">
          <div class="alert alert-info">
-            <strong>Planilha:</strong> Aluno {{ $planilha->aluno->name }} - Criada em {{ $planilha->created_at->format('d/m/Y') }}
+            <strong>Planilha:</strong> {{ $planilhaDescricao }} - Criada em {{ $planilha->created_at->format('d/m/Y') }}
          </div>
          @else
          <div class="form-group">
@@ -22,8 +27,13 @@
             <select name="planilha_id" id="planilha_id" class="form-control" required>
                <option value="">Selecione a planilha</option>
                @foreach(\App\Models\PlanilhaTreino::with('aluno')->get() as $p)
+               @php
+                  $planilhaDescricao = $p->is_padrao
+                     ? 'Padrão: ' . ($p->nome ?: 'sem nome')
+                     : ($p->aluno?->name ?: 'Aluno não vinculado');
+               @endphp
                <option value="{{ $p->id }}" {{ old('planilha_id') == $p->id ? 'selected' : '' }}>
-                  {{ $p->aluno->name }} - {{ $p->created_at->format('d/m/Y') }}
+                  {{ $planilhaDescricao }} - {{ $p->created_at->format('d/m/Y') }}
                </option>
                @endforeach
             </select>
@@ -75,4 +85,3 @@
    </div>
 </div>
 @stop
-

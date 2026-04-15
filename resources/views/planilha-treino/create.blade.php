@@ -127,7 +127,7 @@
             <label for="aluno_id">Aluno *</label>
             <select name="aluno_id" id="aluno_id" class="form-control" required>
                <option value="">Selecione o aluno</option>
-               @foreach(\App\Models\User::whereHas('roles', fn($q) => $q->where('name', 'aluno'))->get() as $user)
+               @foreach(\App\Models\User::role('aluno')->get() as $user)
                <option value="{{ $user->id }}" {{ old('aluno_id') == $user->id ? 'selected' : '' }}>
                   {{ $user->name }}
                </option>
@@ -209,4 +209,3 @@
    </div>
 </div>
 @stop
-

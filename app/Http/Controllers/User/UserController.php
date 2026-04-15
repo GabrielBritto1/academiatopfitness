@@ -15,7 +15,7 @@ class UserController extends Controller
     */
    public function index(Request $request)
    {
-      $query = User::with('roles');
+      $query = User::with(['roles', 'permissions']);
 
       if ($request->has('search')) {
          $query->where('name', 'like', '%' . $request->input('search') . '%');
@@ -31,7 +31,7 @@ class UserController extends Controller
     */
    public function create()
    {
-      return view('user.index');
+      return redirect()->route('user.index');
    }
 
    /**
@@ -43,7 +43,8 @@ class UserController extends Controller
          'name' => 'required|string|max:255',
          'email' => 'required|string|email|max:255|unique:users',
          'password' => 'required|string|min:8|confirmed',
-         'roles' => 'required|exists:roles,id',
+         'roles' => 'required|array|min:1',
+         'roles.*' => 'exists:roles,id',
       ]);
 
       $user = User::create([
@@ -51,7 +52,7 @@ class UserController extends Controller
          'email' => $validated['email'],
          'password' => Hash::make($validated['password']),
       ]);
-      $user->roles()->attach($validated['roles']);
+      $user->syncRoles(Role::whereIn('id', $validated['roles'])->get());
 
       return redirect()->route('user.index')->with('success', 'Usuário criado com sucesso!');
    }
@@ -61,7 +62,7 @@ class UserController extends Controller
     */
    public function show(string $id)
    {
-      $userShow = User::find($id);
+      $userShow = User::with(['roles.permissions', 'permissions'])->findOrFail($id);
       return view('user.show', compact('userShow'));
    }
 
@@ -85,14 +86,15 @@ class UserController extends Controller
       $validated = $request->validate([
          'name' => 'required',
          'email' => 'required|email',
-         'roles' => 'required|exists:roles,id',
+         'roles' => 'required|array|min:1',
+         'roles.*' => 'exists:roles,id',
       ]);
 
       $userUpdate->update([
          'name' => $validated['name'],
          'email' => $validated['email'],
       ]);
-      $userUpdate->roles()->sync($validated['roles']);
+      $userUpdate->syncRoles(Role::whereIn('id', $validated['roles'])->get());
 
       return redirect()->route('user.index')->with('success', 'Usuário atualizado com sucesso!');
    }

@@ -14,9 +14,7 @@ class AvaliacaoController extends Controller
     */
    public function index()
    {
-      $alunos = User::whereHas('roles', function ($query) {
-         $query->where('name', 'aluno');
-      })->get();
+      $alunos = User::role('aluno')->get();
       return view('avaliacao.index', compact('alunos'));
    }
 
@@ -25,9 +23,7 @@ class AvaliacaoController extends Controller
     */
    public function create()
    {
-      $alunos = User::whereHas('roles', function ($query) {
-         $query->where('name', 'aluno');
-      })->get();
+      $alunos = User::role('aluno')->get();
       return view('avaliacao.create', compact('alunos'));
    }
 

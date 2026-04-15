@@ -12,12 +12,17 @@
          @csrf
          @method('PUT')
 
+         @php
+            $planilhaDescricao = $exercicio->treino->planilha->is_padrao
+               ? 'Padrão ' . ($exercicio->treino->planilha->nome ?: 'sem nome')
+               : ($exercicio->treino->planilha->aluno?->name ?: 'Aluno não vinculado');
+         @endphp
          <div class="alert alert-info">
             <strong>Treino:</strong> {{ $exercicio->treino->sigla }}
             @if($exercicio->treino->nome)
             - {{ $exercicio->treino->nome }}
             @endif
-            (Planilha: {{ $exercicio->treino->planilha->aluno->name }})
+            (Planilha: {{ $planilhaDescricao }})
          </div>
 
          <div class="form-group">
@@ -92,4 +97,3 @@
    </div>
 </div>
 @stop
-

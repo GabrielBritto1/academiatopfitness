@@ -1,18 +1,22 @@
 <?php
 
 use App\Http\Controllers\AvaliacaoController;
+use App\Http\Controllers\AccessControlController;
 use App\Http\Controllers\Financeiro\FinancialCategoryController;
+use App\Http\Controllers\Financeiro\FinancialNotificationController;
 use App\Http\Controllers\Financeiro\FinancialTransactionController;
 use App\Http\Controllers\Modalidade\AcademiaUnidadeController;
 use App\Http\Controllers\Modalidade\ModalidadeController;
 use App\Http\Controllers\PlanilhaTreinoController;
 use App\Http\Controllers\Planos\PlanosController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RelatorioPdfController;
 use App\Http\Controllers\TreinoController;
 use App\Http\Controllers\TreinoExercicioController;
 use App\Http\Controllers\User\AlunoController;
 use App\Http\Controllers\User\ProfessorController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\WhatsappInstanceController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -25,11 +29,18 @@ Route::get('/', function () {
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::middleware(['auth'])->group(function () {
+   Route::get('/register', function () {
+      return redirect()->route('home');
+   })->name('register');
+   Route::get('/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
+   Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
+   Route::get('/perfil/senha', [ProfileController::class, 'editPassword'])->name('profile.password.edit');
+   Route::put('/perfil/senha', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
    // ROTA DE USUÁRIOS
-   // Route::resource('/users', UserController::class);
-   Route::get('/users', [UserController::class, 'index'])->name('user.index');
-   Route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
-   Route::middleware(['can:admin'])->group(function () {
+   Route::middleware(['can:users.manage'])->group(function () {
+      Route::get('/users', [UserController::class, 'index'])->name('user.index');
+      Route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
       Route::get('/user/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
       Route::put('/user/{id}', [UserController::class, 'update'])->name('user.update');
       Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
@@ -37,18 +48,46 @@ Route::middleware(['auth'])->group(function () {
       Route::post('/users', [UserController::class, 'store'])->name('user.store');
    });
 
+   Route::middleware(['can:roles.manage'])->group(function () {
+      Route::get('/access-control', [AccessControlController::class, 'index'])->name('access-control.index');
+      Route::post('/access-control/roles', [AccessControlController::class, 'storeRole'])->name('access-control.roles.store');
+      Route::post('/access-control/permissions', [AccessControlController::class, 'storePermission'])->name('access-control.permissions.store');
+      Route::put('/access-control/roles/{id}/permissions', [AccessControlController::class, 'syncRolePermissions'])->name('access-control.roles.permissions.sync');
+   });
+
    // ROTA DE ALUNOS
    Route::get('/alunos', [AlunoController::class, 'index'])->name('aluno.index');
-   Route::post('/alunos', [AlunoController::class, 'store'])->name('aluno.store');
    Route::get('/aluno/{id}', [AlunoController::class, 'show'])->name('aluno.show');
-   Route::get('/aluno/{id}/edit', [AlunoController::class, 'edit'])->name('aluno.edit');
-   Route::put('/aluno/{id}', [AlunoController::class, 'update'])->name('aluno.update');
-   Route::post('/aluno/{id}/toggleStatus', [AlunoController::class, 'toggleStatus'])->name('aluno.toggleStatus');
    Route::post('/carrinhodeplanos', [AlunoController::class, 'store2'])->name('aluno.store2');
+   Route::post('/aluno/{id}/whatsapp-cobranca', [AlunoController::class, 'sendBillingWhatsappAlert'])
+      ->middleware(['can:financeiro.manage'])
+      ->name('aluno.whatsapp.billing-alert.send');
+   Route::post('/aluno/{id}/aniversario/email', [AlunoController::class, 'sendBirthdayEmailGreeting'])
+      ->middleware(['can:financeiro.manage'])
+      ->name('aluno.birthday.email.send');
+   Route::post('/aluno/{id}/aniversario/whatsapp', [AlunoController::class, 'sendBirthdayWhatsappGreeting'])
+      ->middleware(['can:financeiro.manage'])
+      ->name('aluno.birthday.whatsapp.send');
+   Route::middleware(['can:students.manage'])->group(function () {
+      Route::post('/alunos', [AlunoController::class, 'store'])->name('aluno.store');
+      Route::get('/aluno/{id}/edit', [AlunoController::class, 'edit'])->name('aluno.edit');
+      Route::put('/aluno/{id}', [AlunoController::class, 'update'])->name('aluno.update');
+      Route::post('/aluno/{id}/toggleStatus', [AlunoController::class, 'toggleStatus'])->name('aluno.toggleStatus');
+   });
+
+   Route::middleware(['can:whatsapp.manage'])->group(function () {
+      Route::get('/whatsapp/instancias', [WhatsappInstanceController::class, 'index'])->name('whatsapp.instances.index');
+      Route::get('/whatsapp/instancias/{id}/editar', [WhatsappInstanceController::class, 'edit'])->name('whatsapp.instances.edit');
+      Route::post('/whatsapp/instancias', [WhatsappInstanceController::class, 'store'])->name('whatsapp.instances.store');
+      Route::put('/whatsapp/instancias/{id}', [WhatsappInstanceController::class, 'update'])->name('whatsapp.instances.update');
+      Route::delete('/whatsapp/instancias/{id}', [WhatsappInstanceController::class, 'destroy'])->name('whatsapp.instances.destroy');
+   });
 
    // ROTA DE PROFESSORES
    Route::get('/professores', [ProfessorController::class, 'index'])->name('professor.index');
-   Route::post('/professores', [ProfessorController::class, 'store'])->name('professor.store');
+   Route::middleware(['can:professors.manage'])->group(function () {
+      Route::post('/professores', [ProfessorController::class, 'store'])->name('professor.store');
+   });
 
    // ROTA DE MODALIDADES
    // Route::resource('/modalidades', ModalidadeController::class);
@@ -70,13 +109,15 @@ Route::middleware(['auth'])->group(function () {
 
    // ROTA DE PLANOS
    Route::get('/planos', [PlanosController::class, 'index'])->name('planos.index');
-   Route::post('/planos', [PlanosController::class, 'store'])->name('planos.store');
-   Route::get('/planos/create', [PlanosController::class, 'create'])->name('planos.create');
    Route::get('/planos/{id}', [PlanosController::class, 'show'])->name('planos.show');
-   Route::get('/planos/{id}/edit', [PlanosController::class, 'edit'])->name('planos.edit');
-   Route::put('/planos/{id}', [PlanosController::class, 'update'])->name('planos.update');
-   Route::delete('/planos/{id}', [PlanosController::class, 'destroy'])->name('planos.destroy');
    Route::get('/carrinhodeplanos', [PlanosController::class, 'carrinho'])->name('planos.carrinho');
+   Route::middleware(['can:plans.manage'])->group(function () {
+      Route::post('/planos', [PlanosController::class, 'store'])->name('planos.store');
+      Route::get('/planos/create', [PlanosController::class, 'create'])->name('planos.create');
+      Route::get('/planos/{id}/edit', [PlanosController::class, 'edit'])->name('planos.edit');
+      Route::put('/planos/{id}', [PlanosController::class, 'update'])->name('planos.update');
+      Route::delete('/planos/{id}', [PlanosController::class, 'destroy'])->name('planos.destroy');
+   });
 
    // ROTA DE PLANILHA DE TREINO
    Route::get('/planilha-treino', [PlanilhaTreinoController::class, 'index'])->name('planilha-treino.index');
@@ -128,6 +169,7 @@ Route::middleware(['auth'])->group(function () {
 
    // ROTAS DE FINANCEIRO
    // Categorias Financeiras
+   Route::get('/financeiro/notificacoes/vencimentos', [FinancialNotificationController::class, 'dueSoon'])->name('financeiro.notificacoes.vencimentos');
    Route::get('/financeiro/categorias', [FinancialCategoryController::class, 'index'])->name('financeiro.categorias.index');
    Route::post('/financeiro/categorias', [FinancialCategoryController::class, 'store'])->name('financeiro.categorias.store');
    Route::put('/financeiro/categorias/{id}', [FinancialCategoryController::class, 'update'])->name('financeiro.categorias.update');

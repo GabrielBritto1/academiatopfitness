@@ -29,7 +29,7 @@
          </div>
          <div id="unidades-planos-container">
             <div class="row mt-3 unidade-plano-group">
-               <div class="col-12 col-sm-6 col-md-3">
+               <div class="col-12 col-sm-6 col-md-2">
                   <label for="unidade">Unidade</label>
                   <select class="form-control unidade-select" name="unidades[]" required>
                      <option value="" selected disabled>Selecione uma Unidade</option>
@@ -38,17 +38,30 @@
                      @endforeach
                   </select>
                </div>
-               <div class="col-12 col-sm-6 col-md-3">
+               <div class="col-12 col-sm-6 col-md-2">
                   <label for="plano">Plano</label>
                   <select class="form-control plano-select" name="planos[]" disabled required>
                      <option value="" selected disabled>Selecione um Plano</option>
                   </select>
                </div>
-               <div class="col-12 col-sm-6 col-md-3">
+               <div class="col-12 col-sm-6 col-md-2">
                   <label for="valor">Valor</label>
                   <input type="text" class="form-control valor-input" name="valores[]" placeholder="Valor do Plano" required>
                </div>
-               <div class="col-8 col-sm-3 col-md-2">
+               <div class="col-12 col-sm-6 col-md-2">
+                  <label for="periodicidade">Periodicidade</label>
+                  <select class="form-control periodicidade-select" name="periodicidades[]" required>
+                     <option value="mensal" selected>Mensal</option>
+                     <option value="semestral">Semestral</option>
+                     <option value="anual">Anual</option>
+                     <option value="diario">Diario</option>
+                  </select>
+               </div>
+               <div class="col-12 col-sm-6 col-md-2">
+                  <label for="data_vencimento">Primeiro Vencimento</label>
+                  <input type="date" class="form-control data-vencimento-input" name="datas_vencimento[]" required>
+               </div>
+               <div class="col-8 col-sm-3 col-md-1">
                   <label for="plano">Desconto</label>
                   <input type="text" class="form-control desconto-input" name="descontos[]" placeholder="(%)">
                </div>
@@ -97,6 +110,9 @@
    }
 
    $(function() {
+      const defaultDueDate = new Date().toISOString().split('T')[0];
+      $('.data-vencimento-input').val(defaultDueDate);
+
       // Adicionar novo grupo unidade/plano
       $('#add-unidade-plano').click(function() {
          const group = $('.unidade-plano-group').first().clone();
@@ -104,6 +120,8 @@
          group.find('input').val('');
          group.removeData('valor-com-desconto'); // Limpa dados antigos
          group.find('.plano-select').html('<option value="" selected disabled>Selecione um Plano</option>').prop('disabled', true);
+         group.find('.periodicidade-select').val('mensal');
+         group.find('.data-vencimento-input').val(defaultDueDate);
          $('#unidades-planos-container').append(group);
       });
 

@@ -12,8 +12,13 @@
          @csrf
          @method('PUT')
 
+         @php
+            $planilhaDescricao = $treino->planilha->is_padrao
+               ? 'Padrão ' . ($treino->planilha->nome ?: 'sem nome')
+               : ($treino->planilha->aluno?->name ? 'Aluno ' . $treino->planilha->aluno->name : 'Aluno não vinculado');
+         @endphp
          <div class="alert alert-info">
-            <strong>Planilha:</strong> Aluno {{ $treino->planilha->aluno->name }} - Criada em {{ $treino->planilha->created_at->format('d/m/Y') }}
+            <strong>Planilha:</strong> {{ $planilhaDescricao }} - Criada em {{ $treino->planilha->created_at->format('d/m/Y') }}
          </div>
 
          <div class="form-group">
@@ -54,4 +59,3 @@
    </div>
 </div>
 @stop
-
