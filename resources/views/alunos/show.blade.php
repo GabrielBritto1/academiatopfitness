@@ -3,20 +3,17 @@
 @section('title', $user->name)
 
 @section('content_header')
-<div class="d-flex justify-content-between align-items-center">
-   <h1 class="text-bold mb-0">{{ $user->name }}</h1>
-   @if($paymentTransaction)
-   <a href="{{ route('financeiro.transacoes.edit', $paymentTransaction->id) }}" class="btn btn-primary">
-      <i class="fas fa-money-bill-wave"></i> Editar Pagamento
-   </a>
-   @endif
-</div>
+<h1></h1>
 @stop
 
 @section('content')
 
 @php
-$openWhatsappTab = session('open_whatsapp_tab') || $errors->has('whatsapp_instance_id') || $errors->has('message');
+$openBillingTab = session('open_billing_tab')
+   || session('open_whatsapp_tab')
+   || $errors->has('whatsapp_instance_id')
+   || $errors->has('message')
+   || $errors->has('billing_email_message');
 $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_message') || $errors->has('birthday_whatsapp_message') || $errors->has('birthday_whatsapp_instance_id');
 @endphp
 
@@ -100,7 +97,7 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
 
       <ul class="nav nav-tabs">
          <li class="nav-item">
-            <a class="nav-link {{ ($openWhatsappTab || $openBirthdayTab) ? '' : 'active' }}" data-toggle="tab" href="#ficha">📄 Ficha Técnica</a>
+            <a class="nav-link {{ ($openBillingTab || $openBirthdayTab) ? '' : 'active' }}" data-toggle="tab" href="#ficha">📄 Ficha Técnica</a>
          </li>
 
          <li class="nav-item">
@@ -117,7 +114,7 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
 
          @if($billingAlert)
          <li class="nav-item">
-            <a class="nav-link {{ $openWhatsappTab ? 'active' : '' }}" data-toggle="tab" href="#whatsapp-cobranca" id="whatsapp-cobranca-tab">💬 Aviso de Cobrança</a>
+            <a class="nav-link {{ $openBillingTab ? 'active' : '' }}" data-toggle="tab" href="#whatsapp-cobranca" id="whatsapp-cobranca-tab">💬 Aviso de Cobrança</a>
          </li>
          @endif
 
@@ -131,7 +128,7 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
       <div class="tab-content p-3">
 
          {{-- TAB FICHA --}}
-         <div id="ficha" class="tab-pane fade {{ ($openWhatsappTab || $openBirthdayTab) ? '' : 'show active' }}">
+         <div id="ficha" class="tab-pane fade {{ ($openBillingTab || $openBirthdayTab) ? '' : 'show active' }}">
             <h4 class="mb-3">Informações do Aluno</h4>
 
             <div class="row">
@@ -148,6 +145,26 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
                <div class="col-md-4 mb-3">
                   <strong>Sexo:</strong><br>
                   {{ $aluno->sexo ?? '—' }}
+               </div>
+            </div>
+
+            <div class="mb-4">
+               <strong>Acesso Rápido:</strong>
+               <div class="mt-2 d-flex flex-wrap">
+                  <a href="{{ route('avaliacao.create', ['aluno_id' => $user->id, 'professor_id' => auth()->id()]) }}" class="btn btn-sm btn-success mr-2 mb-2">
+                     <i class="fas fa-plus-circle"></i> Fazer Avaliação Física
+                  </a>
+                  <a href="{{ route('avaliacao.show', $user->id) }}" class="btn btn-sm btn-info mr-2 mb-2">
+                     <i class="fas fa-chart-line"></i> Ver Histórico de Avaliações
+                  </a>
+                  <a href="{{ route('planos.carrinho', ['user_id' => $user->id]) }}" class="btn btn-sm btn-warning mr-2 mb-2">
+                     <i class="fas fa-credit-card"></i> Vincular Plano
+                  </a>
+                  @if($paymentTransaction)
+                  <a href="{{ route('financeiro.transacoes.edit', $paymentTransaction->id) }}" class="btn btn-sm btn-primary mb-2">
+                     <i class="fas fa-money-check-alt"></i> Ajustar Pagamento
+                  </a>
+                  @endif
                </div>
             </div>
 
@@ -187,15 +204,46 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
             @if($planos->count())
             <ul class="list-group">
                @foreach($planos as $plano)
+               @php($planPaymentTransaction = $planPaymentTransactions[$plano->pivot->id] ?? null)
                <li class="list-group-item">
-                  <strong>{{ $plano->name }}</strong><br>
-                  <small class="text-muted">
-                     Periodicidade: {{ ucfirst($plano->pivot->periodicidade ?? 'mensal') }}
-                     |
-                     Vencimento: {{ isset($plano->pivot->data_vencimento) && $plano->pivot->data_vencimento ? \Carbon\Carbon::parse($plano->pivot->data_vencimento)->format('d/m/Y') : '—' }}
-                     |
-                     Forma de pagamento: {{ ucfirst($plano->pivot->forma_pagamento ?? 'nao informada') }}
-                  </small>
+                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                     <div class="mb-2 mb-md-0 pr-md-3">
+                        <strong>{{ $plano->name }}</strong><br>
+                        <small class="text-muted">
+                           Periodicidade: {{ ucfirst($plano->pivot->periodicidade ?? 'mensal') }}
+                           |
+                           Vencimento: {{ isset($plano->pivot->data_vencimento) && $plano->pivot->data_vencimento ? \Carbon\Carbon::parse($plano->pivot->data_vencimento)->format('d/m/Y') : '—' }}
+                           |
+                           Forma de pagamento: {{ ucfirst($plano->pivot->forma_pagamento ?? 'nao informada') }}
+                        </small>
+                        @if($planPaymentTransaction)
+                        <div class="mt-2">
+                           <span class="badge badge-{{ $planPaymentTransaction->status === 'vencido' ? 'danger' : 'warning' }}">
+                              {{ $planPaymentTransaction->status === 'vencido' ? 'Pagamento vencido' : 'Pagamento pendente' }}
+                           </span>
+                           <small class="text-muted ml-2">
+                              Cobrança: {{ $planPaymentTransaction->due_date?->format('d/m/Y') ?? '—' }} |
+                              Valor: R$ {{ number_format($planPaymentTransaction->amount - $planPaymentTransaction->discount + $planPaymentTransaction->addition, 2, ',', '.') }}
+                           </small>
+                        </div>
+                        @endif
+                     </div>
+
+                     <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center">
+                        <a href="{{ route('aluno.planos.edit', [$user->id, $plano->pivot->id]) }}" class="btn btn-sm btn-outline-primary mb-2 mb-sm-0 {{ $planPaymentTransaction ? 'mr-sm-2' : '' }}">
+                           <i class="fas fa-edit"></i> Editar Plano
+                        </a>
+
+                        @if($planPaymentTransaction)
+                        <form action="{{ route('financeiro.transacoes.marcar-pago', $planPaymentTransaction->id) }}" method="POST" class="mb-0">
+                           @csrf
+                           <button type="submit" class="btn btn-sm btn-success">
+                              <i class="fas fa-check-circle"></i> Confirmar Pagamento
+                           </button>
+                        </form>
+                        @endif
+                     </div>
+                  </div>
                </li>
                @endforeach
             </ul>
@@ -218,7 +266,7 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
                   <div>
                      <h4 class="mb-0">Planilha criada em {{ $planilha->created_at->format('d/m/Y') }}</h4>
                      <small class="text-muted">
-                        Professor: {{ $planilha->professor->name ?? '—' }} | 
+                        Professor: {{ $planilha->professor->name ?? '—' }} |
                         Unidade: {{ $planilha->unidade->nome ?? '—' }}
                      </small>
                   </div>
@@ -228,38 +276,38 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
                   </div>
                </div>
                <div class="card-body">
-            @foreach($planilha->treinos as $treino)
-            <div class="card mb-2">
-               <div class="card-header d-flex justify-content-between align-items-center">
-                  <div>
-                     <strong>Treino {{ $treino->sigla }}</strong>
-                     @if($treino->nome)
-                        <small class="text-muted">— {{ $treino->nome }}</small>
-                     @endif
-                     @if($treino->dias_semana)
-                        <small class="text-muted">({{ $treino->dias_semana }})</small>
-                     @endif
-                  </div>
-                  <a href="{{ route('treino.show', $treino->id) }}" class="btn btn-sm btn-info">Ver/Editar</a>
-               </div>
+                  @foreach($planilha->treinos as $treino)
+                  <div class="card mb-2">
+                     <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                           <strong>Treino {{ $treino->sigla }}</strong>
+                           @if($treino->nome)
+                           <small class="text-muted">— {{ $treino->nome }}</small>
+                           @endif
+                           @if($treino->dias_semana)
+                           <small class="text-muted">({{ $treino->dias_semana }})</small>
+                           @endif
+                        </div>
+                        <a href="{{ route('treino.show', $treino->id) }}" class="btn btn-sm btn-info">Ver/Editar</a>
+                     </div>
 
-               <div class="card-body">
-                  @if($treino->exercicios->count())
-                  <ul class="mb-0">
-                     @foreach($treino->exercicios as $ex)
-                     <li>
-                        <strong>{{ $ex->nome }}</strong> —
-                        {{ $ex->series }}x{{ $ex->repeticoes }}
-                        @if($ex->carga) ({{ $ex->carga }} | {{ $ex->descanso }} descanso) @endif
-                     </li>
-                     @endforeach
-                  </ul>
-                  @else
-                  <p class="text-muted mb-0">Nenhum exercício no treino {{ $treino->sigla }}.</p>
-                  @endif
-               </div>
-            </div>
-            @endforeach
+                     <div class="card-body">
+                        @if($treino->exercicios->count())
+                        <ul class="mb-0">
+                           @foreach($treino->exercicios as $ex)
+                           <li>
+                              <strong>{{ $ex->nome }}</strong> —
+                              {{ $ex->series }}x{{ $ex->repeticoes }}
+                              @if($ex->carga) ({{ $ex->carga }} | {{ $ex->descanso }} descanso) @endif
+                           </li>
+                           @endforeach
+                        </ul>
+                        @else
+                        <p class="text-muted mb-0">Nenhum exercício no treino {{ $treino->sigla }}.</p>
+                        @endif
+                     </div>
+                  </div>
+                  @endforeach
                </div>
             </div>
             @endforeach
@@ -269,7 +317,7 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
          </div>
 
          @if($billingAlert)
-         <div id="whatsapp-cobranca" class="tab-pane fade {{ $openWhatsappTab ? 'show active' : '' }}">
+         <div id="whatsapp-cobranca" class="tab-pane fade {{ $openBillingTab ? 'show active' : '' }}">
             <div class="alert alert-{{ $billingAlert['is_overdue'] ? 'danger' : 'warning' }}">
                <div class="d-flex justify-content-between align-items-center flex-wrap">
                   <div>
@@ -280,66 +328,102 @@ $openBirthdayTab = session('open_birthday_tab') || $errors->has('birthday_email_
                </div>
             </div>
 
-            <div class="card card-outline card-{{ $billingAlert['is_overdue'] ? 'danger' : 'warning' }}">
-               <div class="card-header">
-                  <h3 class="card-title">Enviar mensagem de cobrança</h3>
+            <div class="row">
+               <div class="col-lg-6">
+                  <div class="card card-outline card-primary h-100">
+                     <div class="card-header">
+                        <h3 class="card-title">Aviso por E-mail</h3>
+                     </div>
+                     <form method="POST" action="{{ route('aluno.billing.email.send', $user->id) }}">
+                        @csrf
+                        <div class="card-body">
+                           <div class="row">
+                              <div class="col-md-6 mb-3">
+                                 <strong>Parcela:</strong><br>
+                                 {{ $billingAlert['transaction']->description }}
+                              </div>
+                              <div class="col-md-6 mb-3">
+                                 <strong>E-mail do aluno:</strong><br>
+                                 {{ $user->email ?? 'Não cadastrado' }}
+                              </div>
+                           </div>
+
+                           <div class="form-group">
+                              <label for="billing_email_message">Mensagem</label>
+                              <textarea name="billing_email_message" id="billing_email_message" rows="6" class="form-control @error('billing_email_message') is-invalid @enderror" required>{{ old('billing_email_message', $billingAlert['message']) }}</textarea>
+                              @error('billing_email_message')
+                              <div class="invalid-feedback">{{ $message }}</div>
+                              @enderror
+                           </div>
+                        </div>
+                        <div class="card-footer">
+                           <button type="submit" class="btn btn-primary">
+                              <i class="fas fa-envelope"></i> Enviar por e-mail
+                           </button>
+                        </div>
+                     </form>
+                  </div>
                </div>
-               <form method="POST" action="{{ route('aluno.whatsapp.billing-alert.send', $user->id) }}">
-                  @csrf
-                  <div class="card-body">
-                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                           <strong>Parcela:</strong><br>
-                           {{ $billingAlert['transaction']->description }}
-                        </div>
-                        <div class="col-md-4 mb-3">
-                           <strong>Vencimento:</strong><br>
-                           {{ $billingAlert['transaction']->due_date?->format('d/m/Y') ?? '—' }}
-                        </div>
-                        <div class="col-md-4 mb-3">
-                           <strong>Telefone do aluno:</strong><br>
-                           {{ $aluno->telefone ?? 'Não cadastrado' }}
-                        </div>
-                     </div>
 
-                     @if($whatsappInstances->isEmpty())
-                     <div class="alert alert-info mb-0">
-                        Nenhuma instância ativa do WhatsApp foi cadastrada ainda.
-                        <a href="{{ route('whatsapp.instances.index') }}">Cadastrar agora</a>.
+               <div class="col-lg-6">
+                  <div class="card card-outline card-{{ $billingAlert['is_overdue'] ? 'danger' : 'warning' }} h-100">
+                     <div class="card-header">
+                        <h3 class="card-title">Aviso por WhatsApp</h3>
                      </div>
-                     @else
-                     <div class="form-group">
-                        <label for="whatsapp_instance_id">Instância do WhatsApp</label>
-                        <select name="whatsapp_instance_id" id="whatsapp_instance_id" class="form-control @error('whatsapp_instance_id') is-invalid @enderror" required>
-                           <option value="">Selecione</option>
-                           @foreach($whatsappInstances as $instance)
-                           <option value="{{ $instance->id }}" {{ (string) old('whatsapp_instance_id', $whatsappInstances->firstWhere('is_default', true)?->id) === (string) $instance->id ? 'selected' : '' }}>
-                              {{ $instance->name }}{{ $instance->is_default ? ' (Padrão)' : '' }}
-                           </option>
-                           @endforeach
-                        </select>
-                        @error('whatsapp_instance_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                     </div>
+                     <form method="POST" action="{{ route('aluno.whatsapp.billing-alert.send', $user->id) }}">
+                        @csrf
+                        <div class="card-body">
+                           <div class="row">
+                              <div class="col-md-6 mb-3">
+                                 <strong>Vencimento:</strong><br>
+                                 {{ $billingAlert['transaction']->due_date?->format('d/m/Y') ?? '—' }}
+                              </div>
+                              <div class="col-md-6 mb-3">
+                                 <strong>Telefone do aluno:</strong><br>
+                                 {{ $aluno->telefone ?? 'Não cadastrado' }}
+                              </div>
+                           </div>
 
-                     <div class="form-group">
-                        <label for="message">Mensagem</label>
-                        <textarea name="message" id="message" rows="6" class="form-control @error('message') is-invalid @enderror" required>{{ old('message', $billingAlert['message']) }}</textarea>
-                        @error('message')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                     </div>
-                     @endif
+                           @if($whatsappInstances->isEmpty())
+                           <div class="alert alert-info mb-0">
+                              Nenhuma instância ativa do WhatsApp foi cadastrada ainda.
+                              <a href="{{ route('whatsapp.instances.index') }}">Cadastrar agora</a>.
+                           </div>
+                           @else
+                           <div class="form-group">
+                              <label for="whatsapp_instance_id">Instância do WhatsApp</label>
+                              <select name="whatsapp_instance_id" id="whatsapp_instance_id" class="form-control @error('whatsapp_instance_id') is-invalid @enderror" required>
+                                 <option value="">Selecione</option>
+                                 @foreach($whatsappInstances as $instance)
+                                 <option value="{{ $instance->id }}" {{ (string) old('whatsapp_instance_id', $whatsappInstances->firstWhere('is_default', true)?->id) === (string) $instance->id ? 'selected' : '' }}>
+                                    {{ $instance->name }}{{ $instance->is_default ? ' (Padrão)' : '' }}
+                                 </option>
+                                 @endforeach
+                              </select>
+                              @error('whatsapp_instance_id')
+                              <div class="invalid-feedback">{{ $message }}</div>
+                              @enderror
+                           </div>
+
+                           <div class="form-group">
+                              <label for="message">Mensagem</label>
+                              <textarea name="message" id="message" rows="6" class="form-control @error('message') is-invalid @enderror" required>{{ old('message', $billingAlert['message']) }}</textarea>
+                              @error('message')
+                              <div class="invalid-feedback">{{ $message }}</div>
+                              @enderror
+                           </div>
+                           @endif
+                        </div>
+                        @if($whatsappInstances->isNotEmpty())
+                        <div class="card-footer">
+                           <button type="submit" class="btn btn-success">
+                              <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+                           </button>
+                        </div>
+                        @endif
+                     </form>
                   </div>
-                  @if($whatsappInstances->isNotEmpty())
-                  <div class="card-footer">
-                     <button type="submit" class="btn btn-success">
-                        <i class="fab fa-whatsapp"></i> Enviar aviso
-                     </button>
-                  </div>
-                  @endif
-               </form>
+               </div>
             </div>
          </div>
          @endif

@@ -26,6 +26,7 @@ class Planos extends Model
    {
       return $this->belongsToMany(User::class, 'aluno_plano_unidade', 'plano_id', 'user_id')
          ->withPivot([
+            'id',
             'academia_unidade_id',
             'valor_inicial',
             'valor_total',

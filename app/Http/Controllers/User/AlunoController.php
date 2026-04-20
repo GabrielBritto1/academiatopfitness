@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BillingAlertEmail;
 use App\Mail\BirthdayGreetingMail;
 use App\Mail\StudentWelcomeMail;
 use App\Models\AcademiaUnidade;
@@ -247,6 +248,7 @@ class AlunoController extends Controller
       ])->findOrFail($id);
       $aluno = $user->aluno;
       $planos = $user->planos()->orderBy('name')->get();
+      $planPaymentTransactions = $this->resolveOpenPlanPaymentTransactions($user, $planos);
       $avaliacoes = $user->avaliacoes;
       $planilhas = $user->planilhas;
       $paymentTransaction = $this->resolveEditablePaymentTransactionForUser($user);
@@ -254,7 +256,7 @@ class AlunoController extends Controller
       $birthdayGreeting = $this->resolveBirthdayGreetingForUser($user);
       $whatsappInstances = $this->resolveActiveWhatsappInstances();
 
-      return view('alunos.show', compact('user', 'aluno', 'planos', 'avaliacoes', 'planilhas', 'paymentTransaction', 'billingAlert', 'birthdayGreeting', 'whatsappInstances'));
+      return view('alunos.show', compact('user', 'aluno', 'planos', 'planPaymentTransactions', 'avaliacoes', 'planilhas', 'paymentTransaction', 'billingAlert', 'birthdayGreeting', 'whatsappInstances'));
    }
 
    public function photo(Request $request)
@@ -278,8 +280,7 @@ class AlunoController extends Controller
    public function edit(string $id)
    {
       $aluno = User::findOrFail($id);
-      $unidades = AcademiaUnidade::all();
-      return view('alunos.edit', compact('aluno', 'unidades'));
+      return view('alunos.edit', compact('aluno'));
    }
 
    /**
@@ -301,16 +302,13 @@ class AlunoController extends Controller
          'telefone' => 'nullable|digits_between:10,11',
          'sexo' => 'nullable|string|max:10',
          'data_nascimento' => 'nullable|date|before_or_equal:today',
-         'unidade_id' => 'nullable|exists:academia_unidades,id',
          'observacoes' => 'nullable|string',
          'foto' => 'nullable|image|max:2048',
-         'status' => 'required|boolean',
       ]);
 
       $user->update([
          'name' => $validated['name'],
          'email' => $validated['email'],
-         'status' => $validated['status'],
       ]);
 
       $dadosAluno = [
@@ -318,7 +316,7 @@ class AlunoController extends Controller
          'telefone' => $validated['telefone'] ?? null,
          'sexo' => $validated['sexo'] ?? null,
          'data_nascimento' => $validated['data_nascimento'] ?? null,
-         'unidade_id' => $validated['unidade_id'] ?? null,
+         'unidade_id' => $user->aluno?->unidade_id,
          'observacoes' => $validated['observacoes'] ?? null,
       ];
 
@@ -340,6 +338,59 @@ class AlunoController extends Controller
       return redirect()->route('aluno.index')->with('success', 'Aluno editado com sucesso!');
    }
 
+   public function editPlan(string $id, string $contractId)
+   {
+      $user = User::findOrFail($id);
+      $contract = $user->planosContratados()
+         ->with(['plano', 'unidade'])
+         ->findOrFail($contractId);
+      $unidades = AcademiaUnidade::with('planos')
+         ->orderBy('nome')
+         ->get();
+
+      return view('alunos.planos.edit', compact('user', 'contract', 'unidades'));
+   }
+
+   public function updatePlan(Request $request, string $id, string $contractId)
+   {
+      $user = User::findOrFail($id);
+      $contract = $user->planosContratados()->with('plano')->findOrFail($contractId);
+
+      $validated = $request->validate([
+         'academia_unidade_id' => 'required|exists:academia_unidades,id',
+         'plano_id' => 'required|exists:planos,id',
+         'valor_inicial' => 'required|numeric|min:0',
+         'valor_desconto' => 'nullable|numeric|min:0|max:100',
+         'forma_pagamento' => ['required', 'string', Rule::in(['dinheiro', 'cartao', 'pix', 'boleto'])],
+         'periodicidade' => ['required', Rule::in(AlunoPlanoUnidade::PERIODICIDADES)],
+         'data_vencimento' => 'required|date',
+      ]);
+
+      DB::transaction(function () use ($contract, $validated) {
+         $valorInicial = round((float) $validated['valor_inicial'], 2);
+         $descontoPercentual = round((float) ($validated['valor_desconto'] ?? 0), 2);
+         $valorTotal = round($valorInicial - ($valorInicial * ($descontoPercentual / 100)), 2);
+
+         $contract->update([
+            'academia_unidade_id' => $validated['academia_unidade_id'],
+            'plano_id' => $validated['plano_id'],
+            'valor_inicial' => $valorInicial,
+            'valor_total' => $valorTotal,
+            'valor_desconto' => $descontoPercentual,
+            'forma_pagamento' => $validated['forma_pagamento'],
+            'periodicidade' => $validated['periodicidade'],
+            'data_vencimento' => $validated['data_vencimento'],
+         ]);
+
+         $contract->refresh()->load('plano');
+         $this->syncOpenChargesForStudentPlanContract($contract);
+      });
+
+      return redirect()
+         ->to(route('aluno.show', $user->id) . '#planos')
+         ->with('success', 'Plano do aluno atualizado com sucesso!');
+   }
+
    /**
     * Remove the specified resource from storage.
     */
@@ -351,10 +402,24 @@ class AlunoController extends Controller
    public function toggleStatus(string $id)
    {
       $user = User::findOrFail($id);
-      $user->status = !$user->status;
-      $user->save();
 
-      return redirect()->route('aluno.index')->with('success', 'Status do aluno atualizado com sucesso!');
+      if ($user->status) {
+         DB::transaction(function () use ($user) {
+            $this->clearStudentPlanData($user);
+
+            $user->update([
+               'status' => false,
+            ]);
+         });
+
+         return redirect()->route('aluno.index')->with('success', 'Aluno cancelado com sucesso!');
+      }
+
+      $user->update([
+         'status' => true,
+      ]);
+
+      return redirect()->route('aluno.index')->with('success', 'Aluno ativado com sucesso!');
    }
 
    public function sendBillingWhatsappAlert(Request $request, string $id, EvolutionApiService $evolutionApiService)
@@ -424,6 +489,57 @@ class AlunoController extends Controller
          ->to(route('aluno.show', $user->id) . '#whatsapp-cobranca')
          ->with('success', 'Mensagem de cobrança enviada com sucesso pelo WhatsApp.')
          ->with('open_whatsapp_tab', true);
+   }
+
+   public function sendBillingEmailAlert(Request $request, string $id)
+   {
+      $user = User::with('aluno.unidade')->findOrFail($id);
+      $billingAlert = $this->resolveBillingAlertForUser($user);
+
+      if (! $billingAlert) {
+         return redirect()
+            ->route('aluno.show', $user->id)
+            ->with('error', 'O aluno não possui cobrança próxima do vencimento ou atraso recente para aviso.');
+      }
+
+      $validator = validator($request->all(), [
+         'billing_email_message' => 'required|string',
+      ]);
+
+      if ($validator->fails()) {
+         return redirect()
+            ->to(route('aluno.show', $user->id) . '#whatsapp-cobranca')
+            ->withErrors($validator)
+            ->withInput()
+            ->with('open_billing_tab', true);
+      }
+
+      if (! $user->email) {
+         return redirect()
+            ->to(route('aluno.show', $user->id) . '#whatsapp-cobranca')
+            ->with('error', 'O aluno não possui e-mail cadastrado para envio.')
+            ->with('open_billing_tab', true);
+      }
+
+      Mail::to($user->email)->send(new BillingAlertEmail(
+         studentName: $user->name,
+         subjectLine: $billingAlert['email_subject'],
+         messageBody: $validator->validated()['billing_email_message'],
+         dueDate: $billingAlert['transaction']->due_date?->format('d/m/Y') ?? '—',
+         amount: 'R$ ' . number_format(
+            $billingAlert['transaction']->amount - $billingAlert['transaction']->discount + $billingAlert['transaction']->addition,
+            2,
+            ',',
+            '.'
+         ),
+         transactionDescription: $billingAlert['transaction']->description,
+         unitName: $user->aluno?->unidade?->nome,
+      ));
+
+      return redirect()
+         ->to(route('aluno.show', $user->id) . '#whatsapp-cobranca')
+         ->with('success', 'Mensagem de cobrança enviada com sucesso por e-mail.')
+         ->with('open_billing_tab', true);
    }
 
    public function sendBirthdayEmailGreeting(Request $request, string $id)
@@ -579,6 +695,77 @@ class AlunoController extends Controller
          ->first();
    }
 
+   private function resolveOpenPlanPaymentTransactions(User $user, $planos)
+   {
+      $plans = collect($planos);
+      $contractIds = $plans
+         ->pluck('pivot.id')
+         ->filter()
+         ->values();
+      $showUntilDate = now()->startOfDay()->addDays(7);
+
+      if ($plans->isEmpty()) {
+         return collect();
+      }
+
+      $openTransactions = FinancialTransaction::query()
+         ->where('kind', 'conta_receber')
+         ->where('user_id', $user->id)
+         ->whereIn('status', ['pendente', 'vencido'])
+         ->whereNotNull('due_date')
+         ->whereDate('due_date', '<=', $showUntilDate->toDateString())
+         ->orderByRaw("CASE WHEN status = 'vencido' THEN 0 ELSE 1 END")
+         ->orderBy('due_date')
+         ->orderBy('created_at')
+         ->get();
+
+      if ($openTransactions->isEmpty()) {
+         return collect();
+      }
+
+      $planTransactions = $openTransactions
+         ->filter(fn (FinancialTransaction $transaction) => $transaction->aluno_plano_unidade_id && $contractIds->contains($transaction->aluno_plano_unidade_id))
+         ->groupBy('aluno_plano_unidade_id')
+         ->map(fn ($transactions) => $transactions->first());
+
+      $unmatchedPlans = $plans->filter(fn ($plan) => ! $planTransactions->has($plan->pivot->id));
+
+      if ($unmatchedPlans->isEmpty()) {
+         return $planTransactions;
+      }
+
+      $unmatchedTransactions = $openTransactions->reject(function (FinancialTransaction $transaction) use ($planTransactions) {
+         return $transaction->aluno_plano_unidade_id && $planTransactions->has($transaction->aluno_plano_unidade_id);
+      })->values();
+
+      if ($unmatchedTransactions->isEmpty()) {
+         return $planTransactions;
+      }
+
+      foreach ($unmatchedPlans as $plan) {
+         $matchingTransactions = $unmatchedTransactions->filter(function (FinancialTransaction $transaction) use ($plan) {
+            return $transaction->description
+               && stripos($transaction->description, $plan->name) !== false;
+         });
+
+         if ($matchingTransactions->count() !== 1) {
+            continue;
+         }
+
+         $matchedTransaction = $matchingTransactions->first();
+         $planTransactions->put($plan->pivot->id, $matchedTransaction);
+         $unmatchedTransactions = $unmatchedTransactions->reject(fn (FinancialTransaction $transaction) => $transaction->id === $matchedTransaction->id)->values();
+      }
+
+      $remainingPlans = $unmatchedPlans->filter(fn ($plan) => ! $planTransactions->has($plan->pivot->id))->values();
+
+      if ($remainingPlans->count() === 1 && $unmatchedTransactions->count() === 1) {
+         $planTransactions->put($remainingPlans->first()->pivot->id, $unmatchedTransactions->first());
+      }
+
+      return $planTransactions;
+   }
+
    private function resolveBirthdayGreetingForUser(User $user): ?array
    {
       if (! $user->aluno || ! $user->aluno->isBirthdayToday()) {
@@ -634,6 +821,9 @@ class AlunoController extends Controller
          'status_label' => $daysUntilDue < 0
             ? 'Atrasada há ' . abs($daysUntilDue) . ' dia(s)'
             : ($daysUntilDue === 0 ? 'Vence hoje' : 'Vence em ' . $daysUntilDue . ' dia(s)'),
+         'email_subject' => $daysUntilDue < 0
+            ? 'Aviso de cobrança em atraso - Academia Top Fitness'
+            : 'Aviso de cobrança - Academia Top Fitness',
          'message' => $message,
       ];
    }
@@ -690,5 +880,81 @@ class AlunoController extends Controller
       };
 
       return $prefixo . ' - ' . $planoNome;
+   }
+
+   private function syncOpenChargesForStudentPlanContract(AlunoPlanoUnidade $contract): void
+   {
+      $openTransactions = $contract->financialTransactions()
+         ->where('kind', 'conta_receber')
+         ->whereIn('status', ['pendente', 'vencido'])
+         ->orderBy('due_date')
+         ->orderBy('created_at')
+         ->get();
+
+      if ($openTransactions->isEmpty()) {
+         return;
+      }
+
+      $currentDueDate = $contract->dueDateAnchor();
+      $description = $this->buildRecurringChargeDescription(
+         $contract->periodicidade,
+         $contract->plano?->name ?? 'Plano'
+      );
+
+      foreach ($openTransactions as $transaction) {
+         $transaction->update([
+            'academia_unidade_id' => $contract->academia_unidade_id,
+            'description' => $description,
+            'due_date' => $currentDueDate->toDateString(),
+            'amount' => $contract->valor_inicial,
+            'discount' => $contract->monetaryDiscount(),
+            'payment_method' => $contract->forma_pagamento,
+         ]);
+
+         $currentDueDate = $contract->nextDueDateFrom($currentDueDate);
+      }
+   }
+
+   private function clearStudentPlanData(User $user): void
+   {
+      $contracts = $user->planosContratados()->get();
+      $contractIds = $contracts->pluck('id');
+
+      if ($contractIds->isNotEmpty()) {
+         FinancialTransaction::query()
+            ->whereIn('aluno_plano_unidade_id', $contractIds)
+            ->where('kind', 'conta_receber')
+            ->whereIn('status', ['pendente', 'vencido'])
+            ->update([
+               'status' => 'cancelado',
+            ]);
+      }
+
+      FinancialTransaction::query()
+         ->where('user_id', $user->id)
+         ->where('kind', 'conta_receber')
+         ->whereNull('aluno_plano_unidade_id')
+         ->whereIn('status', ['pendente', 'vencido'])
+         ->where(function ($query) {
+            $query
+               ->where('description', 'like', 'Mensalidade%')
+               ->orWhere('description', 'like', 'Semestralidade%')
+               ->orWhere('description', 'like', 'Anuidade%')
+               ->orWhere('description', 'like', 'Diaria%');
+         })
+         ->update([
+            'status' => 'cancelado',
+         ]);
+
+      $contracts->each(function (AlunoPlanoUnidade $contract) {
+         $hasOpenTransactions = FinancialTransaction::query()
+            ->where('aluno_plano_unidade_id', $contract->id)
+            ->whereNotIn('status', ['pago', 'cancelado'])
+            ->exists();
+
+         if (! $hasOpenTransactions) {
+            $contract->delete();
+         }
+      });
    }
 }

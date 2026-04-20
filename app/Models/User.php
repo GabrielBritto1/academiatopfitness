@@ -60,6 +60,7 @@ class User extends Authenticatable
    {
       return $this->belongsToMany(Planos::class, 'aluno_plano_unidade', 'user_id', 'plano_id')
          ->withPivot([
+            'id',
             'academia_unidade_id',
             'valor_inicial',
             'valor_total',

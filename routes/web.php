@@ -63,6 +63,9 @@ Route::middleware(['auth'])->group(function () {
    Route::post('/aluno/{id}/whatsapp-cobranca', [AlunoController::class, 'sendBillingWhatsappAlert'])
       ->middleware(['can:financeiro.manage'])
       ->name('aluno.whatsapp.billing-alert.send');
+   Route::post('/aluno/{id}/cobranca/email', [AlunoController::class, 'sendBillingEmailAlert'])
+      ->middleware(['can:financeiro.manage'])
+      ->name('aluno.billing.email.send');
    Route::post('/aluno/{id}/aniversario/email', [AlunoController::class, 'sendBirthdayEmailGreeting'])
       ->middleware(['can:financeiro.manage'])
       ->name('aluno.birthday.email.send');
@@ -73,6 +76,8 @@ Route::middleware(['auth'])->group(function () {
       Route::post('/alunos', [AlunoController::class, 'store'])->name('aluno.store');
       Route::get('/aluno/{id}/edit', [AlunoController::class, 'edit'])->name('aluno.edit');
       Route::put('/aluno/{id}', [AlunoController::class, 'update'])->name('aluno.update');
+      Route::get('/aluno/{id}/planos/{contractId}/edit', [AlunoController::class, 'editPlan'])->name('aluno.planos.edit');
+      Route::put('/aluno/{id}/planos/{contractId}', [AlunoController::class, 'updatePlan'])->name('aluno.planos.update');
       Route::post('/aluno/{id}/toggleStatus', [AlunoController::class, 'toggleStatus'])->name('aluno.toggleStatus');
    });
 
