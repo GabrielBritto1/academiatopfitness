@@ -22,7 +22,7 @@
                <select class="form-control" name="user_id" id="user_id">
                   <option value="" selected disabled>Selecione um Aluno</option>
                   @foreach ($alunos as $aluno)
-                  <option value="{{ $aluno->id }}">{{ $aluno->name }}</option>
+                  <option value="{{ $aluno->id }}" {{ (string) old('user_id', request('user_id')) === (string) $aluno->id ? 'selected' : '' }}>{{ $aluno->name }}</option>
                   @endforeach
                </select>
             </div>
@@ -58,7 +58,7 @@
                   </select>
                </div>
                <div class="col-12 col-sm-6 col-md-2">
-                  <label for="data_vencimento">Primeiro Vencimento</label>
+                  <label for="data_vencimento">Vencimento</label>
                   <input type="date" class="form-control data-vencimento-input" name="datas_vencimento[]" required>
                </div>
                <div class="col-8 col-sm-3 col-md-1">

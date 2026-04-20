@@ -69,7 +69,7 @@
                            <i class="fas fa-money-bill-wave"></i>
                         </a>
                         @endif
-                        <button type="button" class="btn btn-info btn-sm ativar-btn" data-id="{{ $aluno->id }}">
+                        <button type="button" class="btn btn-info btn-sm ativar-btn" data-id="{{ $aluno->id }}" data-active="{{ $aluno->status ? 1 : 0 }}">
                            <i class="fas fa-check"></i>
                         </button>
                      </div>
@@ -190,10 +190,56 @@
                {{-- FOTO --}}
                <div class="form-group">
                   <label for="foto">Foto do Aluno</label>
-                  <input type="file" class="form-control-file @error('foto') is-invalid @enderror" id="foto" name="foto" accept="image/*">
+                  <div class="d-flex flex-wrap mb-2">
+                     <button type="button" class="btn btn-outline-primary btn-sm mr-2 mb-2" id="open-student-camera">
+                        <i class="fas fa-camera mr-1"></i> Tirar foto agora
+                     </button>
+                     <button type="button" class="btn btn-outline-success btn-sm mr-2 mb-2 d-none" id="capture-student-camera">
+                        <i class="fas fa-camera-retro mr-1"></i> Capturar
+                     </button>
+                     <button type="button" class="btn btn-outline-secondary btn-sm mb-2 d-none" id="close-student-camera">
+                        <i class="fas fa-times mr-1"></i> Fechar câmera
+                     </button>
+                  </div>
+
+                  <input
+                     type="file"
+                     class="form-control-file @error('foto') is-invalid @enderror"
+                     id="foto"
+                     name="foto"
+                     accept="image/*"
+                     capture="user">
+
+                  <small class="form-text text-muted">
+                     Você pode enviar um arquivo ou abrir a câmera para tirar a foto na hora.
+                  </small>
                   @error('foto')
                   <div class="invalid-feedback d-block">{{ $message }}</div>
                   @enderror
+
+                  <div class="mt-3 d-none" id="student-camera-wrapper">
+                     <div class="border rounded p-2 bg-dark">
+                        <video
+                           id="student-camera-video"
+                           class="w-100 rounded"
+                           autoplay
+                           playsinline
+                           muted
+                           style="max-height: 320px; object-fit: cover;"></video>
+                     </div>
+                  </div>
+
+                  <canvas id="student-camera-canvas" class="d-none"></canvas>
+
+                  <div class="mt-3 d-none" id="student-photo-preview-wrapper">
+                     <label class="d-block">Pré-visualização</label>
+                     <img
+                        id="student-photo-preview"
+                        src=""
+                        alt="Pré-visualização da foto do aluno"
+                        class="img-thumbnail rounded"
+                        style="width: 160px; height: 160px; object-fit: cover;">
+                  </div>
                </div>
 
                {{-- OBSERVAÇÕES --}}
@@ -263,9 +309,13 @@
 
    $('.ativar-btn').on('click', function() {
       let id = $(this).data('id');
+      let isActive = Number($(this).data('active')) === 1;
+      let actionLabel = isActive ? 'cancelado' : 'ativado';
       Swal.fire({
          title: 'Processando...',
-         text: 'Aguarde o status do aluno ser mudado.',
+         text: isActive
+            ? 'Aguarde enquanto o aluno é cancelado e os planos vinculados são removidos.'
+            : 'Aguarde enquanto o aluno é ativado.',
          allowOutsideClick: false,
          allowEscapeKey: false,
          allowEnterKey: false,
@@ -281,8 +331,8 @@
          },
          success: function() {
             Swal.fire({
-               title: 'Ativado!',
-               text: 'Status do aluno mudado com sucesso.',
+               title: 'Sucesso!',
+               text: `Aluno ${actionLabel} com sucesso.`,
                icon: 'success'
             }).then(() => {
                location.reload();

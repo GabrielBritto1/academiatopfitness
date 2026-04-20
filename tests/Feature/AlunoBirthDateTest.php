@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Aluno;
 use App\Models\AcademiaUnidade;
+use App\Models\AlunoPlanoUnidade;
+use App\Models\FinancialTransaction;
 use App\Models\Planos;
 use App\Models\Permission;
 use App\Models\Role;
@@ -112,6 +114,10 @@ class AlunoBirthDateTest extends TestCase
 
         Permission::findOrCreate('students.manage', 'web');
         $role = Role::findOrCreate('aluno', 'web');
+        $unidade = AcademiaUnidade::create([
+            'nome' => 'Unidade Atual',
+            'endereco' => 'Rua Atual, 123',
+        ]);
 
         $manager = User::factory()->create();
         $manager->givePermissionTo('students.manage');
@@ -130,6 +136,7 @@ class AlunoBirthDateTest extends TestCase
             'telefone' => '11911112222',
             'sexo' => 'Masculino',
             'data_nascimento' => '2001-01-01',
+            'unidade_id' => $unidade->id,
             'foto' => $oldPhoto,
         ]);
 
@@ -141,7 +148,6 @@ class AlunoBirthDateTest extends TestCase
                 'telefone' => '(11) 98888-7777',
                 'sexo' => 'Masculino',
                 'data_nascimento' => '2001-01-01',
-                'status' => '1',
                 'foto' => UploadedFile::fake()->image('new.jpg'),
             ]);
 
@@ -152,6 +158,8 @@ class AlunoBirthDateTest extends TestCase
 
         $this->assertSame('11122233344', $student->aluno->cpf);
         $this->assertSame('11988887777', $student->aluno->telefone);
+        $this->assertTrue((bool) $student->status);
+        $this->assertSame($unidade->id, $student->aluno->unidade_id);
         $this->assertNotSame($oldPhoto, $student->aluno->foto);
         Storage::disk('public')->assertMissing($oldPhoto);
         Storage::disk('public')->assertExists($student->aluno->foto);
@@ -206,6 +214,27 @@ class AlunoBirthDateTest extends TestCase
         $response->assertOk();
         $response->assertSee('Plano Vinculado');
         $response->assertDontSee('Plano Nao Vinculado');
+        $response->assertSee('Fazer Avaliação Física');
+        $response->assertSee('Ver Histórico de Avaliações');
+        $response->assertSee(route('avaliacao.show', $student->id), false);
+        $response->assertSee(route('planos.carrinho', ['user_id' => $student->id]), false);
+    }
+
+    public function test_plan_cart_preselects_student_from_query_string(): void
+    {
+        Role::findOrCreate('aluno', 'web');
+
+        $viewer = User::factory()->create();
+        $student = User::factory()->create([
+            'name' => 'Aluno Carrinho',
+        ]);
+        $student->assignRole('aluno');
+
+        $response = $this->actingAs($viewer)
+            ->get(route('planos.carrinho', ['user_id' => $student->id]));
+
+        $response->assertOk();
+        $response->assertSee('value="' . $student->id . '" selected', false);
     }
 
     public function test_student_photo_route_serves_uploaded_file_from_storage(): void
@@ -234,5 +263,144 @@ class AlunoBirthDateTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'image/jpeg');
+    }
+
+    public function test_disabling_student_clears_plan_contracts_and_marks_student_inactive(): void
+    {
+        Permission::findOrCreate('students.manage', 'web');
+        $role = Role::findOrCreate('aluno', 'web');
+
+        $manager = User::factory()->create();
+        $manager->givePermissionTo('students.manage');
+
+        $student = User::factory()->create([
+            'status' => true,
+        ]);
+        $student->assignRole($role);
+
+        $unit = AcademiaUnidade::create([
+            'nome' => 'Unidade Cancelamento',
+            'endereco' => 'Rua Cancelamento, 1',
+        ]);
+
+        $firstPlan = Planos::create([
+            'name' => 'Plano Cancelado 1',
+            'preco' => 99.90,
+            'color' => '#101010',
+        ]);
+
+        $secondPlan = Planos::create([
+            'name' => 'Plano Cancelado 2',
+            'preco' => 149.90,
+            'color' => '#202020',
+        ]);
+
+        $student->aluno()->create([
+            'registered_at' => now()->toDateString(),
+            'cpf' => '55544433322',
+            'telefone' => '11977776666',
+            'sexo' => 'Masculino',
+            'data_nascimento' => '2000-01-01',
+        ]);
+
+        $firstContract = AlunoPlanoUnidade::create([
+            'user_id' => $student->id,
+            'academia_unidade_id' => $unit->id,
+            'plano_id' => $firstPlan->id,
+            'valor_inicial' => 99.90,
+            'valor_total' => 99.90,
+            'valor_desconto' => 0,
+            'forma_pagamento' => 'pix',
+            'periodicidade' => 'mensal',
+            'data_vencimento' => now()->toDateString(),
+        ]);
+
+        $secondContract = AlunoPlanoUnidade::create([
+            'user_id' => $student->id,
+            'academia_unidade_id' => $unit->id,
+            'plano_id' => $secondPlan->id,
+            'valor_inicial' => 149.90,
+            'valor_total' => 149.90,
+            'valor_desconto' => 0,
+            'forma_pagamento' => 'cartao',
+            'periodicidade' => 'anual',
+            'data_vencimento' => now()->toDateString(),
+        ]);
+
+        $firstPaidTransaction = FinancialTransaction::create([
+            'kind' => 'conta_receber',
+            'academia_unidade_id' => $unit->id,
+            'user_id' => $student->id,
+            'aluno_plano_unidade_id' => $firstContract->id,
+            'description' => 'Mensalidade - Plano Cancelado 1',
+            'due_date' => now()->toDateString(),
+            'amount' => 99.90,
+            'discount' => 0,
+            'addition' => 0,
+            'payment_method' => 'pix',
+            'amount_paid' => 99.90,
+            'paid_at' => now()->toDateString(),
+            'status' => 'pago',
+        ]);
+
+        $firstOpenTransaction = FinancialTransaction::create([
+            'kind' => 'conta_receber',
+            'academia_unidade_id' => $unit->id,
+            'user_id' => $student->id,
+            'aluno_plano_unidade_id' => $firstContract->id,
+            'description' => 'Mensalidade - Plano Cancelado 1',
+            'due_date' => now()->addMonth()->toDateString(),
+            'amount' => 99.90,
+            'discount' => 0,
+            'addition' => 0,
+            'payment_method' => 'pix',
+            'status' => 'pendente',
+        ]);
+
+        $secondPaidTransaction = FinancialTransaction::create([
+            'kind' => 'conta_receber',
+            'academia_unidade_id' => $unit->id,
+            'user_id' => $student->id,
+            'aluno_plano_unidade_id' => $secondContract->id,
+            'description' => 'Anuidade - Plano Cancelado 2',
+            'due_date' => now()->toDateString(),
+            'amount' => 149.90,
+            'discount' => 0,
+            'addition' => 0,
+            'payment_method' => 'cartao',
+            'amount_paid' => 149.90,
+            'paid_at' => now()->toDateString(),
+            'status' => 'pago',
+        ]);
+
+        $secondOpenTransaction = FinancialTransaction::create([
+            'kind' => 'conta_receber',
+            'academia_unidade_id' => $unit->id,
+            'user_id' => $student->id,
+            'aluno_plano_unidade_id' => $secondContract->id,
+            'description' => 'Anuidade - Plano Cancelado 2',
+            'due_date' => now()->addYear()->toDateString(),
+            'amount' => 149.90,
+            'discount' => 0,
+            'addition' => 0,
+            'payment_method' => 'cartao',
+            'status' => 'pendente',
+        ]);
+
+        $response = $this->actingAs($manager)
+            ->post(route('aluno.toggleStatus', $student->id));
+
+        $response->assertRedirect(route('aluno.index'));
+
+        $student->refresh();
+
+        $this->assertFalse($student->status);
+        $this->assertDatabaseMissing('aluno_plano_unidade', ['id' => $firstContract->id]);
+        $this->assertDatabaseMissing('aluno_plano_unidade', ['id' => $secondContract->id]);
+        $this->assertSame('pago', $firstPaidTransaction->fresh()->status);
+        $this->assertSame('cancelado', $firstOpenTransaction->fresh()->status);
+        $this->assertSame('pago', $secondPaidTransaction->fresh()->status);
+        $this->assertSame('cancelado', $secondOpenTransaction->fresh()->status);
+        $this->assertDatabaseCount('financial_transactions', 4);
     }
 }

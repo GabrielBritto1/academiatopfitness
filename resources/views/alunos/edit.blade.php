@@ -93,35 +93,6 @@
             </div>
          </div>
 
-         {{-- UNIDADE --}}
-         <div class="form-group">
-            <label for="unidade_id">Unidade</label>
-            <select name="unidade_id" class="form-control @error('unidade_id') is-invalid @enderror">
-               <option value="">Selecione</option>
-               @foreach($unidades as $unidade)
-               <option value="{{ $unidade->id }}"
-                  {{ old('unidade_id', $aluno->aluno?->unidade_id) == $unidade->id ? 'selected' : '' }}>
-                  {{ $unidade->nome }}
-               </option>
-               @endforeach
-            </select>
-            @error('unidade_id')
-            <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-         </div>
-
-         {{-- STATUS --}}
-         <div class="form-group">
-            <label for="status">Status</label>
-            <select name="status" class="form-control @error('status') is-invalid @enderror">
-               <option value="1" {{ (string) old('status', (int) $aluno->status) === '1' ? 'selected' : '' }}>Ativo</option>
-               <option value="0" {{ (string) old('status', (int) $aluno->status) === '0' ? 'selected' : '' }}>Inativo</option>
-            </select>
-            @error('status')
-            <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-         </div>
-
          {{-- OBSERVAÇÕES --}}
          <div class="form-group">
             <label for="observacoes">Observações</label>
@@ -133,19 +104,57 @@
 
          {{-- FOTO DO ALUNO --}}
          <div class="form-group">
-            <label for="foto">Foto do Aluno</label>
-            <input type="file" name="foto" class="form-control-file @error('foto') is-invalid @enderror" accept="image/*">
+            <label for="edit-foto">Foto do Aluno</label>
+            <div class="d-flex flex-wrap mb-2">
+               <button type="button" class="btn btn-outline-primary btn-sm mr-2 mb-2" id="open-edit-student-camera">
+                  <i class="fas fa-camera mr-1"></i> Tirar foto agora
+               </button>
+               <button type="button" class="btn btn-outline-success btn-sm mr-2 mb-2 d-none" id="capture-edit-student-camera">
+                  <i class="fas fa-camera-retro mr-1"></i> Capturar
+               </button>
+               <button type="button" class="btn btn-outline-secondary btn-sm mb-2 d-none" id="close-edit-student-camera">
+                  <i class="fas fa-times mr-1"></i> Fechar câmera
+               </button>
+            </div>
+
+            <input
+               type="file"
+               id="edit-foto"
+               name="foto"
+               class="form-control-file @error('foto') is-invalid @enderror"
+               accept="image/*"
+               capture="user">
+
+            <small class="form-text text-muted">
+               Você pode enviar um arquivo ou abrir a câmera para tirar a foto na hora.
+            </small>
             @error('foto')
             <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
 
-            @if($aluno->aluno?->foto)
-            <div class="mt-2">
-               <img src="{{ $aluno->aluno->foto_url }}"
-                  class="img-thumbnail"
-                  style="width: 120px; height:120px; object-fit: cover;">
+            <div class="mt-3 d-none" id="edit-student-camera-wrapper">
+               <div class="border rounded p-2 bg-dark">
+                  <video
+                     id="edit-student-camera-video"
+                     class="w-100 rounded"
+                     autoplay
+                     playsinline
+                     muted
+                     style="max-height: 320px; object-fit: cover;"></video>
+               </div>
             </div>
-            @endif
+
+            <canvas id="edit-student-camera-canvas" class="d-none"></canvas>
+
+            <div class="mt-3 {{ $aluno->aluno?->foto ? '' : 'd-none' }}" id="edit-student-photo-preview-wrapper">
+               <label class="d-block">Pré-visualização</label>
+               <img
+                  id="edit-student-photo-preview"
+                  src="{{ $aluno->aluno?->foto_url ?? '' }}"
+                  alt="Pré-visualização da foto do aluno"
+                  class="img-thumbnail rounded"
+                  style="width: 160px; height:160px; object-fit: cover;">
+            </div>
          </div>
 
       </div>
@@ -159,4 +168,27 @@
 
 </form>
 
+@stop
+
+@section('js')
+<script src="/js/User/index.js"></script>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+      if (typeof window.initStudentPhotoCapture !== 'function') {
+         return;
+      }
+
+      window.initStudentPhotoCapture({
+         fileInputId: 'edit-foto',
+         openCameraButtonId: 'open-edit-student-camera',
+         captureCameraButtonId: 'capture-edit-student-camera',
+         closeCameraButtonId: 'close-edit-student-camera',
+         cameraWrapperId: 'edit-student-camera-wrapper',
+         videoId: 'edit-student-camera-video',
+         canvasId: 'edit-student-camera-canvas',
+         previewWrapperId: 'edit-student-photo-preview-wrapper',
+         previewImageId: 'edit-student-photo-preview'
+      });
+   });
+</script>
 @stop

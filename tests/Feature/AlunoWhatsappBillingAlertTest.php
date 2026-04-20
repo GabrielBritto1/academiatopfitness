@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\BillingAlertEmail;
 use App\Models\Aluno;
 use App\Models\FinancialTransaction;
 use App\Models\Role;
@@ -57,6 +58,7 @@ class AlunoWhatsappBillingAlertTest extends TestCase
         $response->assertOk();
         $response->assertSee('Aviso de Cobrança');
         $response->assertSee('Mensalidade Abril');
+        $response->assertSee('Aviso por E-mail');
         $response->assertSee('Instância do WhatsApp');
         $response->assertSee('vence em');
     }
@@ -119,6 +121,53 @@ class AlunoWhatsappBillingAlertTest extends TestCase
                 && $request->hasHeader('apikey', 'secret-key')
                 && $request['number'] === '5511999998888'
                 && $request['text'] === 'Mensagem de teste';
+        });
+    }
+
+    public function test_financial_manager_can_send_billing_email_alert(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', config('auth.defaults.guard', 'web'));
+        $admin->assignRole('admin');
+
+        $student = User::factory()->create([
+            'name' => 'João',
+            'email' => 'joao@example.com',
+        ]);
+
+        Aluno::create([
+            'user_id' => $student->id,
+            'cpf' => '12345678901',
+            'telefone' => '(11) 99999-8888',
+            'sexo' => 'M',
+            'data_nascimento' => '2000-01-01',
+        ]);
+
+        FinancialTransaction::create([
+            'kind' => 'conta_receber',
+            'user_id' => $student->id,
+            'description' => 'Mensalidade Abril',
+            'due_date' => now()->subDays(2)->toDateString(),
+            'amount' => 150,
+            'discount' => 0,
+            'addition' => 0,
+            'status' => 'pendente',
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('aluno.billing.email.send', $student->id), [
+                'billing_email_message' => 'Mensagem de cobrança por e-mail.',
+            ]);
+
+        $response->assertRedirect(route('aluno.show', $student->id) . '#whatsapp-cobranca');
+        $response->assertSessionHas('success');
+
+        Mail::assertSent(BillingAlertEmail::class, function (BillingAlertEmail $mail) use ($student) {
+            return $mail->hasTo($student->email)
+                && $mail->messageBody === 'Mensagem de cobrança por e-mail.'
+                && $mail->transactionDescription === 'Mensalidade Abril';
         });
     }
 
