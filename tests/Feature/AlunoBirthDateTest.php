@@ -74,6 +74,7 @@ class AlunoBirthDateTest extends TestCase
         $this->assertSame('11999998888', $aluno->telefone);
         $this->assertNotNull($aluno->foto);
         Storage::disk('public')->assertExists($aluno->foto);
+        $this->assertSame(route('aluno.photo', ['path' => $aluno->foto]), $aluno->foto_url);
     }
 
     public function test_student_creation_sends_welcome_email(): void
@@ -205,5 +206,33 @@ class AlunoBirthDateTest extends TestCase
         $response->assertOk();
         $response->assertSee('Plano Vinculado');
         $response->assertDontSee('Plano Nao Vinculado');
+    }
+
+    public function test_student_photo_route_serves_uploaded_file_from_storage(): void
+    {
+        Storage::fake('public');
+
+        Role::findOrCreate('aluno', 'web');
+
+        $viewer = User::factory()->create();
+        $student = User::factory()->create();
+        $student->assignRole('aluno');
+
+        $photoPath = UploadedFile::fake()->image('perfil.jpg')->store('alunos', 'public');
+
+        $student->aluno()->create([
+            'registered_at' => now()->toDateString(),
+            'cpf' => '12312312399',
+            'telefone' => '11911110000',
+            'sexo' => 'Feminino',
+            'data_nascimento' => '2002-02-02',
+            'foto' => $photoPath,
+        ]);
+
+        $response = $this->actingAs($viewer)
+            ->get(route('aluno.photo', ['path' => $photoPath]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'image/jpeg');
     }
 }

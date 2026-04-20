@@ -103,7 +103,11 @@ class Aluno extends Model
    public function getFotoUrlAttribute(): string
    {
       if ($this->foto) {
-         return Storage::disk('public')->url($this->foto);
+         if (filter_var($this->foto, FILTER_VALIDATE_URL)) {
+            return $this->foto;
+         }
+
+         return route('aluno.photo', ['path' => $this->foto]);
       }
 
       return 'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png';

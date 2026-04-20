@@ -257,6 +257,21 @@ class AlunoController extends Controller
       return view('alunos.show', compact('user', 'aluno', 'planos', 'avaliacoes', 'planilhas', 'paymentTransaction', 'billingAlert', 'birthdayGreeting', 'whatsappInstances'));
    }
 
+   public function photo(Request $request)
+   {
+      $path = ltrim((string) $request->query('path', ''), '/');
+
+      if ($path === '' || str_contains($path, '..') || ! str_starts_with($path, 'alunos/')) {
+         abort(404);
+      }
+
+      if (! Storage::disk('public')->exists($path)) {
+         abort(404);
+      }
+
+      return Storage::disk('public')->response($path);
+   }
+
    /**
     * Show the form for editing the specified resource.
     */

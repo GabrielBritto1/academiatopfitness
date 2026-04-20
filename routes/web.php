@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
    // ROTA DE ALUNOS
    Route::get('/alunos', [AlunoController::class, 'index'])->name('aluno.index');
+   Route::get('/aluno-foto', [AlunoController::class, 'photo'])->name('aluno.photo');
    Route::get('/aluno/{id}', [AlunoController::class, 'show'])->name('aluno.show');
    Route::post('/carrinhodeplanos', [AlunoController::class, 'store2'])->name('aluno.store2');
    Route::post('/aluno/{id}/whatsapp-cobranca', [AlunoController::class, 'sendBillingWhatsappAlert'])
